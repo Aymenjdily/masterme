@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MasterMe Login Design</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F6F4EF;--surface:#FFFFFF;--sunken:#EFECE5;--line:#1B1E2914;--line-strong:#1B1E2926;
+  --fg:#1B1E29;--muted:#5E6578;--ink:#0E0F14;
+  --amber:#E9B03F;--amber-600:#C98A1E;--clay:#E0654F;--clay-text:#B8432F;
+  --shadow:0 1px 2px #1B1E290A,0 4px 16px #1B1E290D;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:1600px;background:#E9E6DF;color:var(--fg);font-family:Poppins,sans-serif;-webkit-font-smoothing:antialiased}
+.board{padding:48px 80px 64px}
+.eyebrow{font:500 11px "JetBrains Mono";letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.board-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:24px}
+.board-head h1{font:600 28px Poppins;letter-spacing:-.02em;margin-top:6px}
+.board-head p{font:12px "JetBrains Mono";color:var(--muted);text-align:right;line-height:1.7}
+.frame{border-radius:18px;overflow:hidden;box-shadow:0 30px 80px #1B1E2926;border:1px solid var(--line-strong)}
+.chrome{height:36px;background:#FBFAF7;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;padding:0 14px}
+.chrome i{width:11px;height:11px;border-radius:50%;background:#D8D4CB;display:block}
+.chrome .url{margin-left:18px;height:22px;flex:0 0 360px;border-radius:6px;background:var(--sunken);font:11px "JetBrains Mono";color:var(--muted);display:flex;align-items:center;padding:0 10px}
+
+.page{height:900px;background:var(--bg);display:flex;align-items:center;justify-content:center}
+.card{width:420px;background:var(--surface);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:40px}
+.head{text-align:center}
+.av{width:64px;height:64px;border-radius:50%;margin:0 auto;box-shadow:0 0 0 3px #fff,0 0 0 5px var(--amber)}
+.av img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block}
+.head h2{font:600 24px Poppins;letter-spacing:-.02em;margin-top:22px}
+.head p{font-size:14px;color:var(--muted);margin-top:4px}
+.form{margin-top:30px;display:flex;flex-direction:column;gap:16px}
+label{display:block;font-size:13px;font-weight:500;margin-bottom:8px}
+.input{height:42px;border-radius:10px;background:var(--surface);border:1px solid var(--line-strong);padding:0 14px;display:flex;align-items:center;font-size:14px;color:var(--muted)}
+.input .v{color:var(--fg)}
+.input.focus{border-color:var(--amber-600);box-shadow:0 0 0 4px #E9B03F33}
+.input .eye{margin-left:auto;width:17px;height:17px;stroke:var(--muted);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.caret{width:1.5px;height:18px;background:var(--amber-600);margin-left:1px}
+.btn{height:42px;border-radius:10px;background:var(--amber);color:var(--ink);font:500 14px Poppins;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 1px 2px #9A671033;margin-top:8px}
+.note{text-align:center;font-size:13px;color:var(--muted);margin-top:20px}
+.alert{padding:10px 12px;border-radius:10px;background:#E0654F14;border:1px solid #E0654F4D;color:var(--clay-text);font-size:13px;margin-top:24px}
+.spin{width:15px;height:15px;border-radius:50%;border:2px solid #0E0F1433;border-top-color:var(--ink)}
+
+.states{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:40px}
+.st-h{margin-bottom:12px}
+.st-h b{display:block;font-size:15px;font-weight:600;margin-top:4px}
+.st-h span{font-weight:400;font-size:12px;color:var(--muted)}
+.stage{background:var(--bg);border:1px solid var(--line-strong);border-radius:18px;padding:32px;display:flex;justify-content:center}
+.dis .input{background:var(--bg)}
+.dis .btn{opacity:.7}
+
+/* shader background: blurred palette blobs + grain */
+.shader{position:relative;overflow:hidden;isolation:isolate}
+.shader::before{content:"";position:absolute;inset:-20%;z-index:-2;filter:blur(70px) saturate(115%);
+  background:
+    radial-gradient(38% 42% at 18% 22%, #5B9DE6B3 0%, transparent 70%),
+    radial-gradient(34% 40% at 82% 18%, #E9B03FB3 0%, transparent 70%),
+    radial-gradient(40% 44% at 78% 82%, #7E9A6280 0%, transparent 70%),
+    radial-gradient(36% 40% at 22% 84%, #D9CBB5CC 0%, transparent 72%),
+    radial-gradient(30% 30% at 50% 50%, #F2C25E59 0%, transparent 70%),
+    #F6F4EF;}
+.shader::after{content:"";position:absolute;inset:0;z-index:-1;opacity:.35;mix-blend-mode:soft-light;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");}
+.shader .card{background:#FFFFFFE6;backdrop-filter:blur(12px);border-color:#FFFFFF;box-shadow:0 1px 2px #1B1E290F,0 20px 50px #1B1E291F}
+</style>
+</head>
+<body>
+<div class="board">
+  <div class="board-head">
+    <div><div class="eyebrow">MasterMe · Amber Lens v2.0 · Page design</div><h1>Login · simple + shader background</h1></div>
+    <p>Desktop 1440 × 900 · route <b>/</b><br>Better Auth · credentials only<br>Background: slow-moving palette gradient + grain</p>
+  </div>
+
+  <div class="frame">
+    <div class="chrome"><i></i><i></i><i></i><div class="url">masterme.app</div></div>
+    <div class="page shader">
+      <div class="card">
+        <div class="head">
+          <div class="av"><img src="../public/images/avatar.png" alt=""></div>
+          <h2>Welcome to MasterMe</h2>
+          <p>Sign in to your account</p>
+        </div>
+        <div class="form">
+          <div><label>Email</label><div class="input focus"><span class="v">aymenjdily@gmail.com</span><span class="caret"></span></div></div>
+          <div><label>Password</label><div class="input"><span>Enter your password</span><svg class="eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></div></div>
+          <div class="btn">Sign in</div>
+        </div>
+        <p class="note">Personal project, contact admin for access.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="states">
+    <div>
+      <div class="st-h"><div class="eyebrow">State · error</div><b>Wrong credentials <span>· one generic message under the header</span></b></div>
+      <div class="stage shader">
+        <div class="card">
+          <div class="head">
+            <div class="av"><img src="../public/images/avatar.png" alt=""></div>
+            <h2>Welcome to MasterMe</h2>
+            <p>Sign in to your account</p>
+          </div>
+          <div class="alert">Invalid email or password.</div>
+          <div class="form" style="margin-top:18px">
+            <div><label>Email</label><div class="input"><span class="v">aymenjdily@gmail.com</span></div></div>
+            <div><label>Password</label><div class="input"><span class="v">••••••••</span><svg class="eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></div></div>
+            <div class="btn">Sign in</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="st-h"><div class="eyebrow">State · loading</div><b>Signing in <span>· fields and button disabled</span></b></div>
+      <div class="stage shader">
+        <div class="card dis">
+          <div class="head">
+            <div class="av"><img src="../public/images/avatar.png" alt=""></div>
+            <h2>Welcome to MasterMe</h2>
+            <p>Sign in to your account</p>
+          </div>
+          <div class="form">
+            <div><label>Email</label><div class="input"><span>aymenjdily@gmail.com</span></div></div>
+            <div><label>Password</label><div class="input"><span>••••••••</span></div></div>
+            <div class="btn"><span class="spin"></span>Signing in…</div>
+          </div>
+          <p class="note">Personal project, contact admin for access.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

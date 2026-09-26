@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MasterMe Timeline Design</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F6F4EF;--surface:#FFFFFF;--sunken:#EFECE5;--line:#1B1E2914;--line-strong:#1B1E2926;
+  --fg:#1B1E29;--muted:#5E6578;--ink:#0E0F14;
+  --amber:#E9B03F;--amber-600:#C98A1E;--amber-text:#9A6710;
+  --sky:#5B9DE6;--sky-text:#2F6FB8;--olive-text:#4E6B35;--clay-text:#B8432F;--violet-text:#7A4FC0;--stone-text:#6B5A3E;
+  --shadow:0 1px 2px #1B1E290A,0 4px 16px #1B1E290D;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:1600px;background:#E9E6DF;color:var(--fg);font-family:Poppins,sans-serif;-webkit-font-smoothing:antialiased}
+.mono{font-family:"JetBrains Mono",monospace}
+svg.i{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.board{padding:48px 80px 64px}
+.eyebrow{font:500 11px "JetBrains Mono";letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.board-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:24px}
+.board-head h1{font:600 28px Poppins;letter-spacing:-.02em;margin-top:6px}
+.board-head p{font:12px "JetBrains Mono";color:var(--muted);text-align:right;line-height:1.7}
+.frame{border-radius:18px;overflow:hidden;box-shadow:0 30px 80px #1B1E2926;border:1px solid var(--line-strong)}
+.chrome{height:36px;background:#FBFAF7;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;padding:0 14px}
+.chrome i{width:11px;height:11px;border-radius:50%;background:#D8D4CB;display:block}
+.chrome .url{margin-left:18px;height:22px;flex:0 0 360px;border-radius:6px;background:var(--sunken);font:11px "JetBrains Mono";color:var(--muted);display:flex;align-items:center;padding:0 10px}
+
+/* app shell (matches the built app) */
+.app{height:900px;background:var(--bg);display:grid;grid-template-columns:300px 1fr;gap:16px;padding:16px}
+.side{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:20px 16px}
+.brand{display:flex;align-items:center;gap:10px;padding:0 0 22px}
+.brand img{width:40px;height:40px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 2px #fff,0 0 0 4px var(--amber)}
+.brand b{font-size:20px;font-weight:600}
+.grp{font:500 10px "JetBrains Mono";letter-spacing:.12em;text-transform:uppercase;color:#5E6578CC;padding:18px 0 6px}
+.grp:first-of-type{padding-top:0}
+.nav a{position:relative;display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:10px;font-size:13.5px;font-weight:500;color:var(--muted)}
+.nav a.on{background:var(--bg);color:var(--fg)}
+.nav a.on::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:0 3px 3px 0;background:var(--amber)}
+.nav a.on svg{color:var(--amber-600)}
+.main{display:flex;flex-direction:column;gap:16px;min-width:0}
+.hdr{height:56px;flex-shrink:0;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);display:flex;align-items:center;gap:12px;padding:0 16px}
+.hdr .sep{width:1px;height:20px;background:var(--line-strong)}
+.crumb{flex:1;font-size:14px;color:var(--muted)}
+.crumb b{color:var(--fg);font-weight:500}
+.hdr .date{font:12px "JetBrains Mono";color:var(--muted);padding-right:8px}
+.ib{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.user{display:flex;align-items:center;gap:8px;padding:4px 8px 4px 4px;border-radius:10px;font-size:14px;font-weight:500}
+.user img{width:32px;height:32px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 2px #fff,0 0 0 4px var(--amber)}
+
+/* page */
+.content{padding:8px 8px 0}
+.ph{display:flex;justify-content:space-between;align-items:flex-end}
+.ph h2{font:600 26px Poppins;letter-spacing:-.02em}
+.ph p{font-size:14px;color:var(--muted);margin-top:4px}
+.cols{display:grid;grid-template-columns:1.15fr 1fr;gap:16px;margin-top:22px}
+.card{background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:20px}
+.ch{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.ch .t{display:flex;align-items:center;gap:10px}
+.ch h3{font-size:15px;font-weight:600}
+.count{font:500 11px "JetBrains Mono";color:var(--muted);background:var(--sunken);border-radius:99px;padding:2px 8px}
+.btn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:8px;font:500 13px Poppins;border:1px solid var(--line-strong);background:#fff;box-shadow:0 1px 2px #1B1E290D;white-space:nowrap}
+.btn svg{width:14px;height:14px}
+.btn.primary{background:var(--amber);border-color:transparent;color:var(--ink);box-shadow:0 1px 2px #9A671033}
+.btn.lg{height:40px;padding:0 18px;font-size:14px;border-radius:10px}
+
+/* link rows */
+.row{display:flex;align-items:center;gap:14px;padding:12px;border-radius:14px;border:1px solid var(--line);background:#fff}
+.row + .row{margin-top:8px}
+.row.hover{background:var(--bg)}
+.fav{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.row .tt{font-size:14px;font-weight:500;display:flex;align-items:center;gap:8px}
+.row .u{font:12px "JetBrains Mono";color:var(--muted);margin-top:2px}
+.acts{margin-left:auto;display:flex;gap:2px;color:var(--muted)}
+.acts span{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.acts span.h{background:#fff;color:var(--fg);box-shadow:0 1px 2px #1B1E2914}
+.acts svg{width:16px;height:16px}
+.badge{display:inline-flex;align-items:center;gap:5px;height:20px;padding:0 8px;border-radius:99px;font:500 11px Poppins;border:1px solid}
+.badge::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor}
+.b-primary{color:var(--amber-text);background:#E9B03F26;border-color:#E9B03F66}
+
+/* social tiles */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{position:relative;border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px;background:#fff}
+.tile.hover{background:var(--bg)}
+.mono-t{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font:700 13px Poppins;flex-shrink:0}
+.tile b{display:block;font-size:14px;font-weight:500}
+.tile span.h{display:block;font:12px "JetBrains Mono";color:var(--muted);margin-top:1px}
+.tile .go{margin-left:auto;color:var(--muted)}
+.tile .mini{position:absolute;top:8px;right:8px;display:flex;gap:2px}
+.tile .mini span{width:28px;height:28px;border-radius:7px;background:#fff;box-shadow:0 1px 2px #1B1E2914;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.tile .mini svg{width:14px;height:14px}
+.add-tile{border:1px dashed var(--line-strong);border-radius:14px;display:flex;align-items:center;justify-content:center;gap:8px;color:var(--muted);font-size:13px;min-height:70px}
+.t-sky{background:#5B9DE61F;color:var(--sky-text)}
+.t-amber{background:#E9B03F2E;color:var(--amber-text)}
+.t-olive{background:#7E9A6224;color:var(--olive-text)}
+.t-violet{background:#A67BE51F;color:var(--violet-text)}
+.t-stone{background:#D9CBB566;color:var(--stone-text)}
+.t-ink{background:#1B1E290F;color:var(--fg)}
+
+/* states */
+.states{display:grid;grid-template-columns:460px 1fr;gap:28px;margin-top:40px;align-items:start}
+.st-h{margin-bottom:12px}
+.st-h b{display:block;font-size:15px;font-weight:600;margin-top:4px}
+.st-h span{font-weight:400;font-size:12px;color:var(--muted)}
+.sheet{background:#fff;border:1px solid var(--line-strong);border-radius:20px;box-shadow:0 12px 32px #1B1E291F;padding:24px}
+.sheet h4{font-size:18px;font-weight:600}
+.sheet .d{font-size:13px;color:var(--muted);margin-top:4px}
+.f{margin-top:18px}
+label{display:block;font-size:13px;font-weight:500;margin-bottom:8px}
+label em{font-style:normal;color:var(--muted);font-weight:400}
+.input{height:40px;border-radius:10px;border:1px solid var(--line-strong);padding:0 14px;display:flex;align-items:center;font-size:14px;color:var(--muted);background:#fff}
+.input .v{color:var(--fg)}
+.input.focus{border-color:var(--amber-600);box-shadow:0 0 0 4px #E9B03F33}
+.hint{font-size:12px;color:var(--muted);margin-top:6px}
+.sheet .foot{display:flex;justify-content:flex-end;gap:8px;margin-top:24px;padding-top:18px;border-top:1px solid var(--line)}
+.btn.ghost{border-color:transparent;box-shadow:none;background:transparent}
+.empties{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.empty{border:1px dashed var(--line-strong);border-radius:14px;padding:30px 20px;text-align:center;background:var(--bg)}
+.empty .ic{width:44px;height:44px;border-radius:12px;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;margin:0 auto;color:var(--amber-600)}
+.empty b{display:block;font-size:14px;font-weight:600;margin-top:14px}
+.empty p{font-size:13px;color:var(--muted);margin-top:4px}
+.empty .btn{margin-top:16px}
+.del{margin-top:16px;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:#E0654F0F;border:1px solid #E0654F40;font-size:13px}
+.del b{font-weight:500}
+.del .btn.d{margin-left:auto;background:#E0654F14;border-color:#E0654F55;color:var(--clay-text);box-shadow:none}
+.specs{margin-top:40px;display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.spec{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;font-size:12.5px;color:var(--muted);line-height:1.55}
+.spec b{display:block;color:var(--fg);font-size:13px;font-weight:600;margin-bottom:4px}
+
+/* timeline */
+.app{height:auto;min-height:900px}
+.datenav{display:flex;align-items:center;gap:8px}
+.datenav .d{min-width:210px;text-align:center}
+.datenav .d b{display:block;font-size:14px;font-weight:600}
+.datenav .d span{display:block;font:11px "JetBrains Mono";color:var(--muted);margin-top:1px}
+.ibtn{width:36px;height:36px;border-radius:10px;border:1px solid var(--line-strong);display:flex;align-items:center;justify-content:center;color:var(--muted);background:#fff;box-shadow:0 1px 2px #1B1E290D}
+.ibtn svg{width:16px;height:16px}
+.tcols{display:grid;grid-template-columns:1fr 300px;gap:16px;margin-top:22px;align-items:start}
+.tl{padding:20px 22px}
+.tl-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.tl-h b{font-size:15px;font-weight:600}
+.wake{display:inline-flex;align-items:center;gap:8px;height:30px;padding:0 10px;border-radius:8px;background:var(--bg);border:1px solid var(--line);font:12px "JetBrains Mono";color:var(--muted)}
+.wake b{color:var(--fg);font-weight:500;font-size:12px}
+.wake svg{width:14px;height:14px}
+.rows{position:relative}
+.row{display:grid;grid-template-columns:64px 22px 1fr;gap:12px;align-items:stretch;border:0;padding:0;background:transparent;border-radius:0}
+.row + .row{margin-top:0}
+.time{padding-top:14px;text-align:right}
+.time b{display:block;font:500 13px "JetBrains Mono"}
+.time span{display:block;font:11px "JetBrains Mono";color:var(--muted);margin-top:1px}
+.rail{position:relative;display:flex;justify-content:center}
+.rail::before{content:"";position:absolute;top:0;bottom:0;width:2px;background:var(--sunken)}
+.row:first-child .rail::before{top:18px}
+.row:last-child .rail::before{bottom:calc(100% - 18px)}
+.dot{position:relative;margin-top:16px;width:12px;height:12px;border-radius:50%;background:#fff;border:2px solid #D8D4CB}
+.dot.done{background:#7E9A62;border-color:#7E9A62}
+.dot.prog{background:var(--amber);border-color:var(--amber);box-shadow:0 0 0 4px #E9B03F33}
+.dot.plan{border-color:#5B9DE6}
+.blk{margin:4px 0;border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:grid;grid-template-columns:26px 1fr auto;gap:12px;align-items:center;background:#fff}
+.blk.now{border-color:var(--amber);box-shadow:0 0 0 3px #E9B03F26;background:#FFFCF4}
+.blk.hover{background:var(--bg)}
+.blk.done .t{color:var(--muted);text-decoration:line-through;text-decoration-color:#5E657866}
+.blk .t{font-size:14px;font-weight:500;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.blk .d{font-size:12px;color:var(--muted);margin-top:2px}
+.st{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line-strong);display:flex;align-items:center;justify-content:center;background:#fff}
+.st.done{background:#7E9A62;border-color:#7E9A62}
+.st.done svg{width:12px;height:12px;stroke:#fff;stroke-width:3}
+.st.prog{border-color:var(--amber);background:conic-gradient(var(--amber) 0 50%, #fff 50% 100%)}
+.ra{display:flex;gap:2px;opacity:0}
+.blk.hover .ra{opacity:1}
+.ra span{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;background:#fff;box-shadow:0 1px 2px #1B1E2914;color:var(--muted)}
+.ra svg{width:14px;height:14px}
+.pri{display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:6px;font:500 10.5px "JetBrains Mono";letter-spacing:.04em;text-transform:uppercase}
+.p-high{background:#E0654F14;color:#B8432F}
+.p-med{background:var(--sunken);color:var(--muted)}
+.p-low{background:transparent;color:#5E657899;border:1px solid var(--line)}
+.nowtag{font:500 10.5px "JetBrains Mono";color:#9A6710;background:#E9B03F26;border-radius:6px;padding:2px 7px;letter-spacing:.04em}
+.free{margin:4px 0;border:1px dashed var(--line-strong);border-radius:14px;height:48px;display:flex;align-items:center;justify-content:center;gap:8px;color:var(--muted);font-size:13px}
+.free svg{width:15px;height:15px}
+.b-prog{color:#9A6710;background:#E9B03F26;border-color:#E9B03F66}
+.side-c{padding:20px}
+.ring{position:relative;width:132px;height:132px;margin:6px auto 0}
+.ring svg{width:132px;height:132px;transform:rotate(-90deg)}
+.ring .c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring .c b{font:500 28px "JetBrains Mono"}
+.ring .c span{font-size:12px;color:var(--muted)}
+.legend{margin-top:18px;display:flex;flex-direction:column;gap:10px}
+.legend div{display:flex;align-items:center;gap:10px;font-size:13px}
+.legend i{width:10px;height:10px;border-radius:50%;display:block}
+.legend b{margin-left:auto;font:500 13px "JetBrains Mono"}
+.nowcard{margin-top:18px;padding:14px;border-radius:14px;background:#FFFCF4;border:1px solid #E9B03F66}
+.nowcard .e{font:500 10.5px "JetBrains Mono";letter-spacing:.12em;color:#9A6710;text-transform:uppercase}
+.nowcard b{display:block;font-size:14px;font-weight:600;margin-top:6px}
+.nowcard span{display:block;font:12px "JetBrains Mono";color:var(--muted);margin-top:3px}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--sunken);padding:4px;border-radius:10px}
+.seg span{height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;color:var(--muted)}
+.seg span.on{background:#fff;color:var(--fg);box-shadow:0 1px 3px #1B1E291A}
+.textarea{height:64px;border-radius:10px;border:1px solid var(--line-strong);padding:10px 14px;font-size:14px;color:var(--muted);background:#fff}
+.dlg{background:#fff;border:1px solid var(--line-strong);border-radius:20px;box-shadow:0 12px 32px #1B1E291F;overflow:hidden;position:relative}
+.dlg .hd{padding:24px 24px 6px}
+.dlg .hd h4{font-size:18px;font-weight:600}
+.dlg .hd p{font-size:13px;color:var(--muted);margin-top:4px}
+.dlg .x{position:absolute;top:20px;right:20px;color:var(--muted)}
+.dlg .bd{padding:0 24px 22px}
+.dlg .ft{display:flex;justify-content:flex-end;gap:8px;padding:16px 24px;border-top:1px solid var(--line)}
+.tstates{display:grid;grid-template-columns:1.2fr 1fr;gap:24px;margin-top:40px;align-items:start}
+.wakecard{padding:40px 32px;text-align:center}
+.wakecard .ic{width:52px;height:52px;border-radius:14px;background:#E9B03F26;color:#9A6710;display:flex;align-items:center;justify-content:center;margin:0 auto}
+.wakecard .ic svg{width:24px;height:24px}
+.wakecard h4{font-size:18px;font-weight:600;margin-top:16px}
+.wakecard p{font-size:13.5px;color:var(--muted);margin-top:4px}
+.hours{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:380px;margin:22px auto 0}
+.hours span{height:40px;border-radius:10px;border:1px solid var(--line-strong);display:flex;align-items:center;justify-content:center;font:500 13px "JetBrains Mono";background:#fff}
+.hours span.on{border-color:var(--amber-600);background:#FFFCF4;box-shadow:0 0 0 3px #E9B03F33}
+.wakecard .other{font-size:12.5px;color:var(--muted);margin-top:16px}
+.other u{color:var(--sky-text);text-decoration:none}
+.wakecard .btn.primary{margin-top:22px}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/></symbol>
+  <symbol id="ext" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1h5"/></symbol>
+  <symbol id="pen" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4z"/></symbol>
+  <symbol id="trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></symbol>
+  <symbol id="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a1 1 0 011-1h10"/></symbol>
+  <symbol id="at" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M16 12v1.5a2.5 2.5 0 005 0V12a9 9 0 10-3.5 7.1"/></symbol>
+  <symbol id="file" viewBox="0 0 24 24"><path d="M14 3H6a1 1 0 00-1 1v16a1 1 0 001 1h12a1 1 0 001-1V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></symbol>
+  <symbol id="book" viewBox="0 0 24 24"><path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z"/><path d="M4 19V5"/></symbol>
+  <symbol id="arrow" viewBox="0 0 24 24"><path d="M7 17L17 7M9 7h8v8"/></symbol>
+  <symbol id="dash" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></symbol>
+  <symbol id="clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="wallet" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M16 13h2M3 10h18"/></symbol>
+  <symbol id="bag" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2"/></symbol>
+  <symbol id="folder" viewBox="0 0 24 24"><path d="M3 6a1 1 0 011-1h5l2 2h9a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1z"/></symbol>
+  <symbol id="news" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></symbol>
+  <symbol id="gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9L7 7M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></symbol>
+  <symbol id="bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9M10 21h4"/></symbol>
+  <symbol id="panel" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></symbol>
+  <symbol id="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+
+  <symbol id="check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="up" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></symbol>
+  <symbol id="down" viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></symbol>
+  <symbol id="x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="left" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></symbol>
+  <symbol id="right" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="sun" viewBox="0 0 24 24"><path d="M12 3v2M5.6 6.6l1.4 1.4M3 13h2M19 13h2M17 8l1.4-1.4M7 17a5 5 0 0110 0M3 20h18"/></symbol>
+  <symbol id="eraser" viewBox="0 0 24 24"><path d="M4 20h16M6 16l8-8 4 4-8 8H6z"/></symbol>
+</svg>
+<div class="board">
+  <div class="board-head">
+    <div><div class="eyebrow">MasterMe · Amber Lens v2.0 · Page design</div><h1>Timeline</h1></div>
+    <p>Desktop 1440 × 900 · route <b>/timeline?date=YYYY-MM-DD</b><br>Data: Timeline (date, wakeUpHour) · TimeBlock (hour 0–7, title, description, status, priority)</p>
+  </div>
+  <div class="frame">
+    <div class="chrome"><i></i><i></i><i></i><div class="url">localhost:3000/timeline</div></div>
+    <div class="app">
+      <aside class="side">
+        <div class="brand"><img src="../public/images/avatar.png" alt=""><b>MasterMe</b></div>
+        <nav class="nav">
+          <div class="grp">Dashboards</div>
+          <a><svg class="i"><use href="#dash"/></svg>Dashboard</a>
+          <div class="grp">Life management</div>
+          <a><svg class="i"><use href="#globe"/></svg>Portfolio</a>
+          <a><svg class="i"><use href="#book"/></svg>Learning</a>
+          <a class="on"><svg class="i"><use href="#clock"/></svg>Timeline</a>
+          <a><svg class="i"><use href="#wallet"/></svg>Monthly Cost</a>
+          <div class="grp">Career &amp; business</div>
+          <a><svg class="i"><use href="#bag"/></svg>Jobs</a>
+          <a><svg class="i"><use href="#folder"/></svg>Projects</a>
+          <a><svg class="i"><use href="#news"/></svg>Tech News</a>
+          <div class="grp">Account</div>
+          <a><svg class="i"><use href="#gear"/></svg>Settings</a>
+        </nav>
+      </aside>
+
+      <div class="main">
+        <div class="hdr">
+          <span class="ib" style="width:32px;height:32px"><svg class="i"><use href="#panel"/></svg></span>
+          <span class="sep"></span>
+          <div class="crumb">MasterMe <span style="opacity:.6">/</span> <b>Timeline</b></div>
+          <span class="date">Wed, Sep 23</span>
+          <span class="ib"><svg class="i"><use href="#bell"/></svg></span>
+          <span class="user"><img src="../public/images/avatar.png" alt="">Aymen<svg class="i" style="width:14px;height:14px;color:var(--muted)"><use href="#chev"/></svg></span>
+        </div>
+
+        <div class="content">
+  <div class="ph">
+    <div><h2>Timeline</h2><p>Plan your day in 8 one-hour blocks.</p></div>
+    <div class="datenav">
+      <span class="btn">Today</span>
+      <span class="ibtn"><svg class="i"><use href="#left"/></svg></span>
+      <div class="d"><b>Wednesday, 23 September</b><span>2026-09-23</span></div>
+      <span class="ibtn"><svg class="i"><use href="#right"/></svg></span>
+    </div>
+  </div>
+  <div class="tcols">
+    <div class="card tl">
+      <div class="tl-h"><b>Your day</b><span class="wake"><svg class="i"><use href="#sun"/></svg>Wake up <b>07:00</b><svg class="i"><use href="#pen"/></svg></span></div>
+      <div class="rows"><div class="row"><div class="time"><b>07:00</b><span>08:00</span></div><div class="rail"><span class="dot done"></span></div><div class="blk done"><span class="st done"><svg class="i"><use href="#check"/></svg></span><div><div class="t">Morning review &amp; inbox <span class="pri p-low">Low</span> </div></div><div class="ra"><span><svg class="i"><use href="#up"/></svg></span><span><svg class="i"><use href="#down"/></svg></span><span><svg class="i"><use href="#pen"/></svg></span><span><svg class="i"><use href="#eraser"/></svg></span></div></div></div><div class="row"><div class="time"><b>08:00</b><span>09:00</span></div><div class="rail"><span class="dot done"></span></div><div class="blk done"><span class="st done"><svg class="i"><use href="#check"/></svg></span><div><div class="t">Deep work: jobs scraper <span class="pri p-high">High</span> </div><div class="d">Finish the Indeed parser and dedupe check.</div></div><div class="ra"><span><svg class="i"><use href="#up"/></svg></span><span><svg class="i"><use href="#down"/></svg></span><span><svg class="i"><use href="#pen"/></svg></span><span><svg class="i"><use href="#eraser"/></svg></span></div></div></div><div class="row"><div class="time"><b>09:00</b><span>10:00</span></div><div class="rail"><span class="dot done"></span></div><div class="blk done"><span class="st done"><svg class="i"><use href="#check"/></svg></span><div><div class="t">Code review <span class="pri p-med">Med</span> </div></div><div class="ra"><span><svg class="i"><use href="#up"/></svg></span><span><svg class="i"><use href="#down"/></svg></span><span><svg class="i"><use href="#pen"/></svg></span><span><svg class="i"><use href="#eraser"/></svg></span></div></div></div><div class="row"><div class="time"><b>10:00</b><span>11:00</span></div><div class="rail"><span class="dot prog"></span></div><div class="blk now"><span class="st prog"></span><div><div class="t">Ship billing sheet <span class="pri p-high">High</span> <span class="nowtag">NOW</span></div><div class="d">Monthly vs one-time totals, then deploy.</div></div><div class="ra"><span><svg class="i"><use href="#up"/></svg></span><span><svg class="i"><use href="#down"/></svg></span><span><svg class="i"><use href="#pen"/></svg></span><span><svg class="i"><use href="#eraser"/></svg></span></div></div></div><div class="row"><div class="time"><b>11:00</b><span>12:00</span></div><div class="rail"><span class="dot plan"></span></div><div class="blk"><span class="st"></span><div><div class="t">Lunch + walk <span class="pri p-low">Low</span> </div></div><div class="ra"><span><svg class="i"><use href="#up"/></svg></span><span><svg class="i"><use href="#down"/></svg></span><span><svg class="i"><use href="#pen"/></svg></span><span><svg class="i"><use href="#eraser"/></svg></span></div></div></div><div class="row"><div class="time"><b>12:00</b><span>13:00</span></div><div class="rail"><span class="dot plan"></span></div><div class="blk hover"><span class="st"></span><div><div class="t">Rust course, ch. 10 <span class="pri p-med">Med</span> </div><div class="d">Traits &amp; generics exercises.</div></div><div class="ra"><span><svg class="i"><use href="#up"/></svg></span><span><svg class="i"><use href="#down"/></svg></span><span><svg class="i"><use href="#pen"/></svg></span><span><svg class="i"><use href="#eraser"/></svg></span></div></div></div><div class="row"><div class="time"><b>13:00</b><span>14:00</span></div><div class="rail"><span class="dot plan"></span></div><div class="blk"><span class="st"></span><div><div class="t">Apply to 3 offers <span class="pri p-high">High</span> </div></div><div class="ra"><span><svg class="i"><use href="#up"/></svg></span><span><svg class="i"><use href="#down"/></svg></span><span><svg class="i"><use href="#pen"/></svg></span><span><svg class="i"><use href="#eraser"/></svg></span></div></div></div><div class="row"><div class="time"><b>14:00</b><span>15:00</span></div><div class="rail"><span class="dot "></span></div><div class="free"><svg class="i"><use href="#plus"/></svg>Add task</div></div></div>
+    </div>
+    <div class="card side-c">
+      <div class="tl-h" style="margin-bottom:4px"><b>Day progress</b><span style="font:11px 'JetBrains Mono';color:var(--muted)">7 of 8 filled</span></div>
+      <div class="ring">
+        <svg viewBox="0 0 132 132"><circle cx="66" cy="66" r="56" fill="none" stroke="#EFECE5" stroke-width="12"/>
+          <circle cx="66" cy="66" r="56" fill="none" stroke="#7E9A62" stroke-width="12" stroke-linecap="round" stroke-dasharray="131.9 351.9"/>
+          <circle cx="66" cy="66" r="56" fill="none" stroke="#E9B03F" stroke-width="12" stroke-linecap="round" stroke-dasharray="44.0 351.9" stroke-dashoffset="-135.9"/></svg>
+        <div class="c"><b>3/8</b><span>completed</span></div>
+      </div>
+      <div class="legend">
+        <div><i style="background:#7E9A62"></i>Completed<b>3</b></div>
+        <div><i style="background:#E9B03F"></i>In progress<b>1</b></div>
+        <div><i style="background:#fff;border:2px solid #5B9DE6;width:10px;height:10px"></i>Planned<b>3</b></div>
+        <div><i style="background:#fff;border:1.5px dashed #1B1E2940"></i>Free<b>1</b></div>
+      </div>
+      <div class="nowcard"><div class="e">Right now</div><b>Ship billing sheet</b><span>10:00 – 11:00 · high priority</span></div>
+    </div>
+  </div>
+</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tstates">
+    <div>
+      <div class="st-h"><div class="eyebrow">First visit of the day</div><b>Wake-up hour <span>· the 8 blocks start from this hour</span></b></div>
+      <div class="card wakecard">
+        <div class="ic"><svg class="i"><use href="#sun"/></svg></div>
+        <h4>What time did you wake up?</h4>
+        <p>Your timeline for Wednesday, 23 September starts from this hour.</p>
+        <div class="hours"><span>05:00</span><span>06:00</span><span class="on">07:00</span><span>08:00</span><span>09:00</span><span>10:00</span><span>11:00</span><span>12:00</span></div>
+        <p class="other">Different hour? <u>Pick any hour</u></p>
+        <span class="btn primary lg">Generate timeline</span>
+      </div>
+    </div>
+    <div>
+      <div class="st-h"><div class="eyebrow">Popup · add / edit block</div><b>Add task <span>· same popup for edit</span></b></div>
+      <div class="dlg">
+        <svg class="i x"><use href="#x"/></svg>
+        <div class="hd"><h4>Add task</h4><p><span class="mono" style="color:var(--fg)">14:00 – 15:00</span> · Wednesday, 23 September</p></div>
+        <div class="bd">
+          <div class="f"><label>Title</label><div class="input focus"><span class="v">Prepare interview notes</span></div></div>
+          <div class="f"><label>Description <em>(optional)</em></label><div class="textarea">Questions for the Atlas CRM call…</div></div>
+          <div class="f"><label>Priority</label><div class="seg"><span>Low</span><span class="on">Medium</span><span>High</span></div></div>
+          <div class="f"><label>Status</label><div class="seg"><span class="on">Planned</span><span>In progress</span><span>Done</span></div></div>
+        </div>
+        <div class="ft"><span class="btn ghost lg">Cancel</span><span class="btn primary lg">Save task</span></div>
+      </div>
+      <div class="specs" style="grid-template-columns:1fr;margin-top:16px;gap:10px">
+        <div class="spec"><b>Block actions</b>Click the circle to cycle planned → in progress → done. Hover shows move up / down, edit and clear (confirm popup).</div>
+        <div class="spec"><b>Now</b>On today's date the current hour's block gets the amber outline and a NOW tag, and shows in "Right now".</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

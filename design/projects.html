@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MasterMe Projects Design</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F6F4EF;--surface:#FFFFFF;--sunken:#EFECE5;--line:#1B1E2914;--line-strong:#1B1E2926;
+  --fg:#1B1E29;--muted:#5E6578;--ink:#0E0F14;
+  --amber:#E9B03F;--amber-600:#C98A1E;--amber-text:#9A6710;
+  --sky:#5B9DE6;--sky-text:#2F6FB8;--olive-text:#4E6B35;--clay-text:#B8432F;--violet-text:#7A4FC0;--stone-text:#6B5A3E;
+  --shadow:0 1px 2px #1B1E290A,0 4px 16px #1B1E290D;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:1600px;background:#E9E6DF;color:var(--fg);font-family:Poppins,sans-serif;-webkit-font-smoothing:antialiased}
+.mono{font-family:"JetBrains Mono",monospace}
+svg.i{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.board{padding:48px 80px 64px}
+.eyebrow{font:500 11px "JetBrains Mono";letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.board-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:24px}
+.board-head h1{font:600 28px Poppins;letter-spacing:-.02em;margin-top:6px}
+.board-head p{font:12px "JetBrains Mono";color:var(--muted);text-align:right;line-height:1.7}
+.frame{border-radius:18px;overflow:hidden;box-shadow:0 30px 80px #1B1E2926;border:1px solid var(--line-strong)}
+.chrome{height:36px;background:#FBFAF7;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;padding:0 14px}
+.chrome i{width:11px;height:11px;border-radius:50%;background:#D8D4CB;display:block}
+.chrome .url{margin-left:18px;height:22px;flex:0 0 360px;border-radius:6px;background:var(--sunken);font:11px "JetBrains Mono";color:var(--muted);display:flex;align-items:center;padding:0 10px}
+
+/* app shell (matches the built app) */
+.app{height:900px;background:var(--bg);display:grid;grid-template-columns:300px 1fr;gap:16px;padding:16px}
+.side{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:20px 16px}
+.brand{display:flex;align-items:center;gap:10px;padding:0 0 22px}
+.brand img{width:40px;height:40px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 2px #fff,0 0 0 4px var(--amber)}
+.brand b{font-size:20px;font-weight:600}
+.grp{font:500 10px "JetBrains Mono";letter-spacing:.12em;text-transform:uppercase;color:#5E6578CC;padding:18px 0 6px}
+.grp:first-of-type{padding-top:0}
+.nav a{position:relative;display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:10px;font-size:13.5px;font-weight:500;color:var(--muted)}
+.nav a.on{background:var(--bg);color:var(--fg)}
+.nav a.on::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:0 3px 3px 0;background:var(--amber)}
+.nav a.on svg{color:var(--amber-600)}
+.main{display:flex;flex-direction:column;gap:16px;min-width:0}
+.hdr{height:56px;flex-shrink:0;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);display:flex;align-items:center;gap:12px;padding:0 16px}
+.hdr .sep{width:1px;height:20px;background:var(--line-strong)}
+.crumb{flex:1;font-size:14px;color:var(--muted)}
+.crumb b{color:var(--fg);font-weight:500}
+.hdr .date{font:12px "JetBrains Mono";color:var(--muted);padding-right:8px}
+.ib{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.user{display:flex;align-items:center;gap:8px;padding:4px 8px 4px 4px;border-radius:10px;font-size:14px;font-weight:500}
+.user img{width:32px;height:32px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 2px #fff,0 0 0 4px var(--amber)}
+
+/* page */
+.content{padding:8px 8px 0}
+.ph{display:flex;justify-content:space-between;align-items:flex-end}
+.ph h2{font:600 26px Poppins;letter-spacing:-.02em}
+.ph p{font-size:14px;color:var(--muted);margin-top:4px}
+.cols{display:grid;grid-template-columns:1.15fr 1fr;gap:16px;margin-top:22px}
+.card{background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:20px}
+.ch{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.ch .t{display:flex;align-items:center;gap:10px}
+.ch h3{font-size:15px;font-weight:600}
+.count{font:500 11px "JetBrains Mono";color:var(--muted);background:var(--sunken);border-radius:99px;padding:2px 8px}
+.btn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:8px;font:500 13px Poppins;border:1px solid var(--line-strong);background:#fff;box-shadow:0 1px 2px #1B1E290D;white-space:nowrap}
+.btn svg{width:14px;height:14px}
+.btn.primary{background:var(--amber);border-color:transparent;color:var(--ink);box-shadow:0 1px 2px #9A671033}
+.btn.lg{height:40px;padding:0 18px;font-size:14px;border-radius:10px}
+
+/* link rows */
+.row{display:flex;align-items:center;gap:14px;padding:12px;border-radius:14px;border:1px solid var(--line);background:#fff}
+.row + .row{margin-top:8px}
+.row.hover{background:var(--bg)}
+.fav{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.row .tt{font-size:14px;font-weight:500;display:flex;align-items:center;gap:8px}
+.row .u{font:12px "JetBrains Mono";color:var(--muted);margin-top:2px}
+.acts{margin-left:auto;display:flex;gap:2px;color:var(--muted)}
+.acts span{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.acts span.h{background:#fff;color:var(--fg);box-shadow:0 1px 2px #1B1E2914}
+.acts svg{width:16px;height:16px}
+.badge{display:inline-flex;align-items:center;gap:5px;height:20px;padding:0 8px;border-radius:99px;font:500 11px Poppins;border:1px solid}
+.badge::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor}
+.b-primary{color:var(--amber-text);background:#E9B03F26;border-color:#E9B03F66}
+
+/* social tiles */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{position:relative;border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px;background:#fff}
+.tile.hover{background:var(--bg)}
+.mono-t{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font:700 13px Poppins;flex-shrink:0}
+.tile b{display:block;font-size:14px;font-weight:500}
+.tile span.h{display:block;font:12px "JetBrains Mono";color:var(--muted);margin-top:1px}
+.tile .go{margin-left:auto;color:var(--muted)}
+.tile .mini{position:absolute;top:8px;right:8px;display:flex;gap:2px}
+.tile .mini span{width:28px;height:28px;border-radius:7px;background:#fff;box-shadow:0 1px 2px #1B1E2914;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.tile .mini svg{width:14px;height:14px}
+.add-tile{border:1px dashed var(--line-strong);border-radius:14px;display:flex;align-items:center;justify-content:center;gap:8px;color:var(--muted);font-size:13px;min-height:70px}
+.t-sky{background:#5B9DE61F;color:var(--sky-text)}
+.t-amber{background:#E9B03F2E;color:var(--amber-text)}
+.t-olive{background:#7E9A6224;color:var(--olive-text)}
+.t-violet{background:#A67BE51F;color:var(--violet-text)}
+.t-stone{background:#D9CBB566;color:var(--stone-text)}
+.t-ink{background:#1B1E290F;color:var(--fg)}
+
+/* states */
+.states{display:grid;grid-template-columns:460px 1fr;gap:28px;margin-top:40px;align-items:start}
+.st-h{margin-bottom:12px}
+.st-h b{display:block;font-size:15px;font-weight:600;margin-top:4px}
+.st-h span{font-weight:400;font-size:12px;color:var(--muted)}
+.sheet{background:#fff;border:1px solid var(--line-strong);border-radius:20px;box-shadow:0 12px 32px #1B1E291F;padding:24px}
+.sheet h4{font-size:18px;font-weight:600}
+.sheet .d{font-size:13px;color:var(--muted);margin-top:4px}
+.f{margin-top:18px}
+label{display:block;font-size:13px;font-weight:500;margin-bottom:8px}
+label em{font-style:normal;color:var(--muted);font-weight:400}
+.input{height:40px;border-radius:10px;border:1px solid var(--line-strong);padding:0 14px;display:flex;align-items:center;font-size:14px;color:var(--muted);background:#fff}
+.input .v{color:var(--fg)}
+.input.focus{border-color:var(--amber-600);box-shadow:0 0 0 4px #E9B03F33}
+.hint{font-size:12px;color:var(--muted);margin-top:6px}
+.sheet .foot{display:flex;justify-content:flex-end;gap:8px;margin-top:24px;padding-top:18px;border-top:1px solid var(--line)}
+.btn.ghost{border-color:transparent;box-shadow:none;background:transparent}
+.empties{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.empty{border:1px dashed var(--line-strong);border-radius:14px;padding:30px 20px;text-align:center;background:var(--bg)}
+.empty .ic{width:44px;height:44px;border-radius:12px;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;margin:0 auto;color:var(--amber-600)}
+.empty b{display:block;font-size:14px;font-weight:600;margin-top:14px}
+.empty p{font-size:13px;color:var(--muted);margin-top:4px}
+.empty .btn{margin-top:16px}
+.del{margin-top:16px;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:#E0654F0F;border:1px solid #E0654F40;font-size:13px}
+.del b{font-weight:500}
+.del .btn.d{margin-left:auto;background:#E0654F14;border-color:#E0654F55;color:var(--clay-text);box-shadow:none}
+.specs{margin-top:40px;display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.spec{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;font-size:12.5px;color:var(--muted);line-height:1.55}
+.spec b{display:block;color:var(--fg);font-size:13px;font-weight:600;margin-bottom:4px}
+
+/* projects */
+.app{height:auto;min-height:900px}
+.ph .btn.primary{height:40px;padding:0 16px;font-size:14px;border-radius:10px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:22px}
+.stat{padding:16px 18px}
+.stat .k{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:8px}
+.stat .v{font:500 24px "JetBrains Mono";margin-top:6px}
+.stat .v small{font-size:12px;color:var(--muted);font-weight:400;margin-left:4px}
+.stat .s{font-size:12px;color:var(--muted);margin-top:3px}
+.stat .up{color:#4E6B35}
+.stat .dn{color:#B8432F}
+.bar{display:flex;justify-content:space-between;align-items:center;margin-top:20px}
+.tabs{display:inline-flex;background:var(--sunken);padding:4px;border-radius:12px;gap:4px}
+.tabs span{padding:6px 14px;border-radius:8px;font-size:13px;color:var(--muted);display:flex;align-items:center;gap:7px}
+.tabs span i{font:500 11px "JetBrains Mono";font-style:normal}
+.tabs span.on{background:#fff;color:var(--fg);box-shadow:0 1px 3px #1B1E291A,inset 0 -2px 0 var(--amber)}
+.fchip{height:30px;padding:0 12px;border-radius:99px;border:1px solid var(--line-strong);background:#fff;font-size:12.5px;color:var(--muted);display:inline-flex;align-items:center;gap:6px}
+.fchip.on{border-color:var(--fg);color:var(--fg);font-weight:500}
+.fchip i{width:7px;height:7px;border-radius:50%;display:block}
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:14px}
+.pc{background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column}
+.pc.hover{box-shadow:0 12px 32px #1B1E291A}
+.shot{position:relative;aspect-ratio:16/9;margin:8px 8px 0;border-radius:14px;overflow:hidden}
+.shot .fake{position:absolute;inset:0;padding:14px}
+.shot .fake .nav{height:10px;width:40%;border-radius:4px;background:#ffffffaa}
+.shot .fake .h{height:14px;width:62%;border-radius:4px;background:#ffffffd9;margin-top:22px}
+.shot .fake .h2{height:8px;width:44%;border-radius:4px;background:#ffffff99;margin-top:8px}
+.shot .fake .b{height:18px;width:64px;border-radius:5px;margin-top:14px}
+.shot .fake .cards{display:flex;gap:8px;margin-top:16px}
+.shot .fake .cards span{flex:1;height:34px;border-radius:6px;background:#ffffff80}
+.shot .ov{position:absolute;top:10px;left:10px;display:flex;gap:6px}
+.shot .ov .badge{background:#ffffffe6;backdrop-filter:blur(6px)}
+.shot .menu{position:absolute;top:10px;right:10px;display:flex;gap:4px}
+.shot .menu span{width:30px;height:30px;border-radius:8px;background:#ffffffe6;display:flex;align-items:center;justify-content:center;color:var(--fg);box-shadow:0 1px 2px #1B1E2914}
+.shot .menu svg{width:14px;height:14px}
+.noimg{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;background:var(--sunken)}
+.noimg .m{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font:700 18px Poppins}
+.noimg span{font:11px "JetBrains Mono";color:var(--muted)}
+.pb{padding:14px 16px 16px;display:flex;flex-direction:column;flex:1}
+.pt{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600}
+.pt svg{width:14px;height:14px;color:var(--muted)}
+.pcl{font-size:12.5px;color:var(--muted);margin-top:2px}
+.pd{font-size:12.5px;color:var(--muted);margin-top:8px;line-height:1.5}
+.money{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:14px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.money div{padding:9px 10px}
+.money div + div{border-left:1px solid var(--line)}
+.money span{display:block;font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-family:"JetBrains Mono"}
+.money b{display:block;font:500 13px "JetBrains Mono";margin-top:3px}
+.money b small{font-size:10.5px;color:var(--muted);font-weight:400}
+.money .pos{color:#4E6B35}
+.money .neg{color:#B8432F}
+.pf{display:flex;justify-content:space-between;align-items:center;margin-top:14px}
+.pf .chips{display:flex;gap:6px;flex-wrap:wrap}
+.ichip{height:24px;padding:0 8px;border-radius:7px;background:var(--sunken);font:11px "JetBrains Mono";color:var(--muted);display:inline-flex;align-items:center;gap:5px}
+.ichip b{color:var(--fg);font-weight:500}
+.pf .btn{height:30px;font-size:12.5px}
+.pf .btn svg{width:13px;height:13px}
+.addcard{border:1.5px dashed var(--line-strong);border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--muted);font-size:13.5px;min-height:340px}
+.addcard .c{width:44px;height:44px;border-radius:12px;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--amber-600)}
+.addcard .c svg{width:18px;height:18px}
+.seg{display:grid;gap:4px;background:var(--sunken);padding:4px;border-radius:10px}
+.seg span{height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:12.5px;color:var(--muted)}
+.seg span.on{background:#fff;color:var(--fg);box-shadow:0 1px 3px #1B1E291A}
+.seg i{width:7px;height:7px;border-radius:50%;display:block}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.three{display:grid;grid-template-columns:1fr 1fr 96px;gap:10px}
+.select{height:40px;border-radius:10px;border:1px solid var(--line-strong);padding:0 12px;display:flex;align-items:center;justify-content:space-between;font-size:14px;background:#fff;color:var(--fg)}
+.select svg{width:14px;height:14px;color:var(--muted)}
+.check{display:flex;align-items:center;gap:10px;font-size:13.5px;height:40px}
+.check .cb{width:18px;height:18px;border-radius:5px;background:var(--amber);display:flex;align-items:center;justify-content:center}
+.check .cb svg{width:11px;height:11px;stroke:#0E0F14;stroke-width:3}
+.sec{font:500 10.5px "JetBrains Mono";letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:22px;padding-top:16px;border-top:1px solid var(--line)}
+.dlg{background:#fff;border:1px solid var(--line-strong);border-radius:20px;box-shadow:0 12px 32px #1B1E291F;overflow:hidden;position:relative}
+.dlg .hd{padding:24px 24px 6px}
+.dlg .hd h4{font-size:18px;font-weight:600}
+.dlg .hd p{font-size:13px;color:var(--muted);margin-top:4px}
+.dlg .x{position:absolute;top:20px;right:20px;color:var(--muted)}
+.dlg .bd{padding:0 24px 22px}
+.dlg .ft{display:flex;justify-content:flex-end;gap:8px;padding:16px 24px;border-top:1px solid var(--line)}
+.inc-tot{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.inc-tot div{border-radius:12px;background:var(--bg);border:1px solid var(--line);padding:10px 12px}
+.inc-tot span{display:block;font-size:11.5px;color:var(--muted)}
+.inc-tot b{display:block;font:500 18px "JetBrains Mono";margin-top:2px;color:#4E6B35}
+.rec{display:grid;grid-template-columns:auto 1fr auto auto;gap:12px;align-items:center;padding:11px 4px;border-top:1px solid var(--line)}
+.rec:first-of-type{border-top:0}
+.rec .d b{display:block;font-size:13.5px;font-weight:500}
+.rec .d span{display:block;font:11px "JetBrains Mono";color:var(--muted);margin-top:1px}
+.rec .a{font:500 13.5px "JetBrains Mono";color:#4E6B35;text-align:right}
+.rec .a small{display:block;font-size:10.5px;color:var(--muted);font-weight:400}
+.rec .ra{display:flex;gap:2px;color:var(--muted)}
+.rec .ra span{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center}
+.rec .ra svg{width:14px;height:14px}
+.tpill{height:22px;min-width:78px;justify-content:center;padding:0 8px;border-radius:6px;font:500 10.5px "JetBrains Mono";letter-spacing:.04em;display:inline-flex;align-items:center;text-transform:uppercase}
+.tp-one{background:#5B9DE61A;color:#2F6FB8}
+.tp-mo{background:#7E9A6224;color:#4E6B35}
+.addrow{margin-top:12px;border:1px dashed var(--line-strong);border-radius:12px;height:42px;display:flex;align-items:center;justify-content:center;gap:8px;color:var(--muted);font-size:13px}
+.addrow svg{width:14px;height:14px}
+.b-neutral{color:#5E6578;border-color:#1B1E2926}
+.b-applied{color:#9A6710;border-color:#E9B03F66}
+.b-acc{color:#4E6B35;border-color:#7E9A6266}
+.shot .ov .b-applied{background:#FBEBC6e6}
+.shot .ov .b-acc{background:#E6EDDDe6}
+.pstates{display:grid;grid-template-columns:1.25fr 1fr;gap:24px;margin-top:40px;align-items:start}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/></symbol>
+  <symbol id="ext" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1h5"/></symbol>
+  <symbol id="pen" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4z"/></symbol>
+  <symbol id="trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></symbol>
+  <symbol id="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a1 1 0 011-1h10"/></symbol>
+  <symbol id="at" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M16 12v1.5a2.5 2.5 0 005 0V12a9 9 0 10-3.5 7.1"/></symbol>
+  <symbol id="file" viewBox="0 0 24 24"><path d="M14 3H6a1 1 0 00-1 1v16a1 1 0 001 1h12a1 1 0 001-1V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></symbol>
+  <symbol id="book" viewBox="0 0 24 24"><path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z"/><path d="M4 19V5"/></symbol>
+  <symbol id="arrow" viewBox="0 0 24 24"><path d="M7 17L17 7M9 7h8v8"/></symbol>
+  <symbol id="dash" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></symbol>
+  <symbol id="clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="wallet" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M16 13h2M3 10h18"/></symbol>
+  <symbol id="bag" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2"/></symbol>
+  <symbol id="folder" viewBox="0 0 24 24"><path d="M3 6a1 1 0 011-1h5l2 2h9a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1z"/></symbol>
+  <symbol id="news" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></symbol>
+  <symbol id="gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9L7 7M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></symbol>
+  <symbol id="bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9M10 21h4"/></symbol>
+  <symbol id="panel" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></symbol>
+  <symbol id="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+
+  <symbol id="x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="coins" viewBox="0 0 24 24"><circle cx="9" cy="9" r="6"/><path d="M15.5 9.5A6 6 0 1115 21"/><path d="M9 6v6M7 8h3.5a1.5 1.5 0 010 3H7"/></symbol>
+  <symbol id="cdown" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+  <symbol id="check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="dots" viewBox="0 0 24 24"><circle cx="6" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="18" cy="12" r="1"/></symbol>
+</svg>
+<div class="board">
+  <div class="board-head">
+    <div><div class="eyebrow">MasterMe · Amber Lens v2.0 · Page design</div><h1>Projects</h1></div>
+    <p>Desktop 1440 × 900 · route <b>/projects</b><br>Data: Project (type, status, client, url, preview, neon, vercel) · ProjectBilling (one-time / monthly) · linked MonthlyCost</p>
+  </div>
+  <div class="frame">
+    <div class="chrome"><i></i><i></i><i></i><div class="url">localhost:3000/projects</div></div>
+    <div class="app">
+      <aside class="side">
+        <div class="brand"><img src="../public/images/avatar.png" alt=""><b>MasterMe</b></div>
+        <nav class="nav">
+          <div class="grp">Dashboards</div>
+          <a><svg class="i"><use href="#dash"/></svg>Dashboard</a>
+          <div class="grp">Life management</div>
+          <a><svg class="i"><use href="#globe"/></svg>Portfolio</a>
+          <a><svg class="i"><use href="#book"/></svg>Learning</a>
+          <a><svg class="i"><use href="#clock"/></svg>Timeline</a>
+          <a><svg class="i"><use href="#wallet"/></svg>Monthly Cost</a>
+          <div class="grp">Career &amp; business</div>
+          <a><svg class="i"><use href="#bag"/></svg>Jobs</a>
+          <a class="on"><svg class="i"><use href="#folder"/></svg>Projects</a>
+          <a><svg class="i"><use href="#news"/></svg>Tech News</a>
+          <div class="grp">Account</div>
+          <a><svg class="i"><use href="#gear"/></svg>Settings</a>
+        </nav>
+      </aside>
+
+      <div class="main">
+        <div class="hdr">
+          <span class="ib" style="width:32px;height:32px"><svg class="i"><use href="#panel"/></svg></span>
+          <span class="sep"></span>
+          <div class="crumb">MasterMe <span style="opacity:.6">/</span> <b>Projects</b></div>
+          <span class="date">Wed, Sep 23</span>
+          <span class="ib"><svg class="i"><use href="#bell"/></svg></span>
+          <span class="user"><img src="../public/images/avatar.png" alt="">Aymen<svg class="i" style="width:14px;height:14px;color:var(--muted)"><use href="#chev"/></svg></span>
+        </div>
+
+        <div class="content">
+  <div class="ph">
+    <div><h2>Projects</h2><p>Client, personal and SaaS projects with their income and running costs.</p></div>
+    <span class="btn primary"><svg class="i"><use href="#plus"/></svg>New project</span>
+  </div>
+
+  <div class="stats">
+    <div class="card stat"><div class="k">Active projects</div><div class="v">2<small>of 3</small></div><div class="s">1 client · 1 SaaS</div></div>
+    <div class="card stat"><div class="k">One-time income</div><div class="v">35,000<small>MAD</small></div><div class="s">build fees, all time</div></div>
+    <div class="card stat"><div class="k">Monthly recurring</div><div class="v up">9,800<small>MAD / mo</small></div><div class="s">from 2 projects</div></div>
+    <div class="card stat"><div class="k">Monthly infra</div><div class="v dn">121<small>MAD</small> <small>+ $27.40</small></div><div class="s">linked costs, Neon, Vercel</div></div>
+  </div>
+
+  <div class="bar">
+    <div class="tabs"><span class="on">All <i>3</i></span><span>Client <i>1</i></span><span>Personal <i>1</i></span><span>SaaS <i>1</i></span></div>
+    <div style="display:flex;gap:6px"><span class="fchip on">Any status</span><span class="fchip"><i style="background:#7E9A62"></i>Active</span><span class="fchip"><i style="background:#D9CBB5"></i>Paused</span><span class="fchip"><i style="background:#5E6578"></i>Completed</span></div>
+  </div>
+
+  <div class="pgrid"><div class="pc hover"><div class="shot"><div class="fake" style="background:linear-gradient(135deg,#1B1E29,#2D3243)"><div class="nav"></div><div class="h"></div><div class="h2"></div><div class="b" style="background:#E9B03F"></div><div class="cards"><span></span><span></span><span></span></div></div><div class="ov"><span class="badge b-neutral">Client</span><span class="badge b-acc">Active</span></div><div class="menu"><span><svg class="i"><use href="#pen"/></svg></span><span><svg class="i"><use href="#trash"/></svg></span></div></div><div class="pb"><div class="pt">Atlas CRM<svg class="i"><use href="#ext"/></svg></div><p class="pcl">Client · Atlas Digital</p><p class="pd">Sales CRM for a Rabat agency: pipelines, invoices and a client portal.</p><div class="money"><div><span>One-time</span><b class="pos">35,000 <small>MAD</small></b></div><div><span>Monthly</span><b class="pos">+4,500 <small>MAD</small></b></div><div><span>Infra</span><b class="neg">−121 <small>MAD</small></b></div></div><div class="pf"><div class="chips"><span class="ichip">Neon <b>~$2.55</b></span><span class="ichip">Vercel <b>shared</b></span></div><span class="btn"><svg class="i"><use href="#coins"/></svg>Income · 3</span></div></div></div><div class="pc"><div class="shot"><div class="fake" style="background:linear-gradient(135deg,#F6F4EF,#E9B03F66)"><div class="nav"></div><div class="h"></div><div class="h2"></div><div class="b" style="background:#1B1E29"></div><div class="cards"><span></span><span></span><span></span></div></div><div class="ov"><span class="badge b-applied">SaaS</span><span class="badge b-acc">Active</span></div></div><div class="pb"><div class="pt">MasterMe<svg class="i"><use href="#ext"/></svg></div><p class="pd">Personal ecosystem: jobs, learning, timeline, projects and costs in one place.</p><div class="money"><div><span>One-time</span><b class="">— </b></div><div><span>Monthly</span><b class="pos">+5,300 <small>MAD</small></b></div><div><span>Infra</span><b class="neg">~$4.85</b></div></div><div class="pf"><div class="chips"><span class="ichip">Neon <b>~$4.85</b></span><span class="ichip">Vercel <b>shared</b></span></div><span class="btn"><svg class="i"><use href="#coins"/></svg>Income · 2</span></div></div></div><div class="pc"><div class="shot"><div class="noimg" style="position:absolute;inset:0"><div class="m t-sky">AJ</div><span>No preview image</span></div><div class="ov"><span class="badge b-neutral">Personal</span><span class="badge b-neutral">Paused</span></div></div><div class="pb"><div class="pt">aymenjdily.com<svg class="i"><use href="#ext"/></svg></div><p class="pd">Portfolio site, case studies and writing. Built with Next.js and Sanity.</p><div class="money"><div><span>One-time</span><b class="">—</b></div><div><span>Monthly</span><b class="">—</b></div><div><span>Infra</span><b class="">$0</b></div></div><div class="pf"><div class="chips"></div><span class="btn"><svg class="i"><use href="#coins"/></svg>Income · 0</span></div></div></div></div>
+</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pstates">
+    <div>
+      <div class="st-h"><div class="eyebrow">Popup · new / edit project</div><b>New project <span>· wide popup, sections for hosting and first income</span></b></div>
+      <div class="dlg">
+        <svg class="i x"><use href="#x"/></svg>
+        <div class="hd"><h4>New project</h4><p>A preview image is fetched from the live URL when you save.</p></div>
+        <div class="bd">
+          <div class="two">
+            <div class="f"><label>Title</label><div class="input focus"><span class="v">Atlas CRM</span></div></div>
+            <div class="f"><label>Client name</label><div class="input"><span class="v">Atlas Digital</span></div></div>
+          </div>
+          <div class="two">
+            <div class="f"><label>Type</label><div class="seg" style="grid-template-columns:repeat(3,1fr)"><span class="on">Client</span><span>Personal</span><span>SaaS</span></div></div>
+            <div class="f"><label>Status</label><div class="seg" style="grid-template-columns:repeat(3,1fr)"><span class="on"><i style="background:#7E9A62"></i>Active</span><span>Paused</span><span>Done</span></div></div>
+          </div>
+          <div class="f"><label>Live URL <em>(optional)</em></label><div class="input"><span class="v">https://crm.atlas-digital.ma</span></div></div>
+          <div class="f"><label>Description <em>(optional)</em></label><div class="input">Sales CRM for a Rabat agency…</div></div>
+          <p class="sec">Hosting</p>
+          <div class="two">
+            <div class="f" style="margin-top:12px"><label>Neon project <em>(optional)</em></label><div class="select"><span class="mono" style="font-size:13px">atlas-crm-prod</span><svg class="i"><use href="#cdown"/></svg></div></div>
+            <div class="f" style="margin-top:12px"><label>&nbsp;</label><div class="check"><span class="cb"><svg class="i"><use href="#check"/></svg></span>Hosted on Vercel <span style="color:var(--muted)">(shared $20/mo plan)</span></div></div>
+          </div>
+          <p class="sec">First income <em style="font-style:normal;text-transform:none;letter-spacing:0;font-family:Poppins">(optional, new projects only)</em></p>
+          <div class="three" style="margin-top:12px">
+            <div class="f" style="margin-top:0"><label>Build cost (one-time)</label><div class="input"><span class="v mono">35000</span></div></div>
+            <div class="f" style="margin-top:0"><label>Monthly revenue</label><div class="input"><span class="v mono">4500</span></div></div>
+            <div class="f" style="margin-top:0"><label>Currency</label><div class="select"><span class="mono">MAD</span><svg class="i"><use href="#cdown"/></svg></div></div>
+          </div>
+        </div>
+        <div class="ft"><span class="btn ghost lg">Cancel</span><span class="btn primary lg">Create project</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="st-h"><div class="eyebrow">Popup · income</div><b>Income · Atlas CRM <span>· replaces the side sheet</span></b></div>
+      <div class="dlg">
+        <svg class="i x"><use href="#x"/></svg>
+        <div class="hd"><h4>Income · Atlas CRM</h4><p>One-time build fees and monthly recurring, kept separate.</p></div>
+        <div class="bd">
+          <div class="inc-tot"><div><span>One-time total</span><b>35,000 MAD</b></div><div><span>Monthly recurring</span><b>+4,500 MAD</b></div></div>
+          <div style="margin-top:14px">
+            <div class="rec"><span class="tpill tp-one">One-time</span><div class="d"><b>Build: v1 delivery</b><span>Invoice 2026-06-02</span></div><div class="ra"><span><svg class="i"><use href="#pen"/></svg></span><span><svg class="i"><use href="#trash"/></svg></span></div><div class="a">35,000<small>MAD</small></div></div>
+            <div class="rec"><span class="tpill tp-mo">Monthly</span><div class="d"><b>Maintenance &amp; hosting</b><span>Since 2026-07-01</span></div><div class="ra"><span><svg class="i"><use href="#pen"/></svg></span><span><svg class="i"><use href="#trash"/></svg></span></div><div class="a">3,000<small>MAD / mo</small></div></div>
+            <div class="rec"><span class="tpill tp-mo">Monthly</span><div class="d"><b>Support retainer</b><span>Since 2026-08-01</span></div><div class="ra"><span><svg class="i"><use href="#pen"/></svg></span><span><svg class="i"><use href="#trash"/></svg></span></div><div class="a">1,500<small>MAD / mo</small></div></div>
+          </div>
+          <div class="addrow"><svg class="i"><use href="#plus"/></svg>Add income record</div>
+        </div>
+      </div>
+      <div class="specs" style="grid-template-columns:1fr;margin-top:16px;gap:10px">
+        <div class="spec"><b>Add income record</b>Opens in the same popup: Type (one-time / monthly), Amount + currency, Description, Invoice date.</div>
+        <div class="spec"><b>Cards</b>Edit / delete float on the preview on hover. Infra shows linked Monthly Cost items, the Neon estimate and Vercel as "shared" (never −$20 per project).</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

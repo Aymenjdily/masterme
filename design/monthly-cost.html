@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MasterMe Monthly Cost Design</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F6F4EF;--surface:#FFFFFF;--sunken:#EFECE5;--line:#1B1E2914;--line-strong:#1B1E2926;
+  --fg:#1B1E29;--muted:#5E6578;--ink:#0E0F14;
+  --amber:#E9B03F;--amber-600:#C98A1E;--amber-text:#9A6710;
+  --sky:#5B9DE6;--sky-text:#2F6FB8;--olive-text:#4E6B35;--clay-text:#B8432F;--violet-text:#7A4FC0;--stone-text:#6B5A3E;
+  --shadow:0 1px 2px #1B1E290A,0 4px 16px #1B1E290D;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:1600px;background:#E9E6DF;color:var(--fg);font-family:Poppins,sans-serif;-webkit-font-smoothing:antialiased}
+.mono{font-family:"JetBrains Mono",monospace}
+svg.i{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.board{padding:48px 80px 64px}
+.eyebrow{font:500 11px "JetBrains Mono";letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.board-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:24px}
+.board-head h1{font:600 28px Poppins;letter-spacing:-.02em;margin-top:6px}
+.board-head p{font:12px "JetBrains Mono";color:var(--muted);text-align:right;line-height:1.7}
+.frame{border-radius:18px;overflow:hidden;box-shadow:0 30px 80px #1B1E2926;border:1px solid var(--line-strong)}
+.chrome{height:36px;background:#FBFAF7;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;padding:0 14px}
+.chrome i{width:11px;height:11px;border-radius:50%;background:#D8D4CB;display:block}
+.chrome .url{margin-left:18px;height:22px;flex:0 0 360px;border-radius:6px;background:var(--sunken);font:11px "JetBrains Mono";color:var(--muted);display:flex;align-items:center;padding:0 10px}
+
+/* app shell (matches the built app) */
+.app{height:900px;background:var(--bg);display:grid;grid-template-columns:300px 1fr;gap:16px;padding:16px}
+.side{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:20px 16px}
+.brand{display:flex;align-items:center;gap:10px;padding:0 0 22px}
+.brand img{width:40px;height:40px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 2px #fff,0 0 0 4px var(--amber)}
+.brand b{font-size:20px;font-weight:600}
+.grp{font:500 10px "JetBrains Mono";letter-spacing:.12em;text-transform:uppercase;color:#5E6578CC;padding:18px 0 6px}
+.grp:first-of-type{padding-top:0}
+.nav a{position:relative;display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:10px;font-size:13.5px;font-weight:500;color:var(--muted)}
+.nav a.on{background:var(--bg);color:var(--fg)}
+.nav a.on::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:0 3px 3px 0;background:var(--amber)}
+.nav a.on svg{color:var(--amber-600)}
+.main{display:flex;flex-direction:column;gap:16px;min-width:0}
+.hdr{height:56px;flex-shrink:0;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);display:flex;align-items:center;gap:12px;padding:0 16px}
+.hdr .sep{width:1px;height:20px;background:var(--line-strong)}
+.crumb{flex:1;font-size:14px;color:var(--muted)}
+.crumb b{color:var(--fg);font-weight:500}
+.hdr .date{font:12px "JetBrains Mono";color:var(--muted);padding-right:8px}
+.ib{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.user{display:flex;align-items:center;gap:8px;padding:4px 8px 4px 4px;border-radius:10px;font-size:14px;font-weight:500}
+.user img{width:32px;height:32px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 2px #fff,0 0 0 4px var(--amber)}
+
+/* page */
+.content{padding:8px 8px 0}
+.ph{display:flex;justify-content:space-between;align-items:flex-end}
+.ph h2{font:600 26px Poppins;letter-spacing:-.02em}
+.ph p{font-size:14px;color:var(--muted);margin-top:4px}
+.cols{display:grid;grid-template-columns:1.15fr 1fr;gap:16px;margin-top:22px}
+.card{background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:20px}
+.ch{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.ch .t{display:flex;align-items:center;gap:10px}
+.ch h3{font-size:15px;font-weight:600}
+.count{font:500 11px "JetBrains Mono";color:var(--muted);background:var(--sunken);border-radius:99px;padding:2px 8px}
+.btn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:8px;font:500 13px Poppins;border:1px solid var(--line-strong);background:#fff;box-shadow:0 1px 2px #1B1E290D;white-space:nowrap}
+.btn svg{width:14px;height:14px}
+.btn.primary{background:var(--amber);border-color:transparent;color:var(--ink);box-shadow:0 1px 2px #9A671033}
+.btn.lg{height:40px;padding:0 18px;font-size:14px;border-radius:10px}
+
+/* link rows */
+.row{display:flex;align-items:center;gap:14px;padding:12px;border-radius:14px;border:1px solid var(--line);background:#fff}
+.row + .row{margin-top:8px}
+.row.hover{background:var(--bg)}
+.fav{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.row .tt{font-size:14px;font-weight:500;display:flex;align-items:center;gap:8px}
+.row .u{font:12px "JetBrains Mono";color:var(--muted);margin-top:2px}
+.acts{margin-left:auto;display:flex;gap:2px;color:var(--muted)}
+.acts span{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.acts span.h{background:#fff;color:var(--fg);box-shadow:0 1px 2px #1B1E2914}
+.acts svg{width:16px;height:16px}
+.badge{display:inline-flex;align-items:center;gap:5px;height:20px;padding:0 8px;border-radius:99px;font:500 11px Poppins;border:1px solid}
+.badge::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor}
+.b-primary{color:var(--amber-text);background:#E9B03F26;border-color:#E9B03F66}
+
+/* social tiles */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{position:relative;border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px;background:#fff}
+.tile.hover{background:var(--bg)}
+.mono-t{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font:700 13px Poppins;flex-shrink:0}
+.tile b{display:block;font-size:14px;font-weight:500}
+.tile span.h{display:block;font:12px "JetBrains Mono";color:var(--muted);margin-top:1px}
+.tile .go{margin-left:auto;color:var(--muted)}
+.tile .mini{position:absolute;top:8px;right:8px;display:flex;gap:2px}
+.tile .mini span{width:28px;height:28px;border-radius:7px;background:#fff;box-shadow:0 1px 2px #1B1E2914;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.tile .mini svg{width:14px;height:14px}
+.add-tile{border:1px dashed var(--line-strong);border-radius:14px;display:flex;align-items:center;justify-content:center;gap:8px;color:var(--muted);font-size:13px;min-height:70px}
+.t-sky{background:#5B9DE61F;color:var(--sky-text)}
+.t-amber{background:#E9B03F2E;color:var(--amber-text)}
+.t-olive{background:#7E9A6224;color:var(--olive-text)}
+.t-violet{background:#A67BE51F;color:var(--violet-text)}
+.t-stone{background:#D9CBB566;color:var(--stone-text)}
+.t-ink{background:#1B1E290F;color:var(--fg)}
+
+/* states */
+.states{display:grid;grid-template-columns:460px 1fr;gap:28px;margin-top:40px;align-items:start}
+.st-h{margin-bottom:12px}
+.st-h b{display:block;font-size:15px;font-weight:600;margin-top:4px}
+.st-h span{font-weight:400;font-size:12px;color:var(--muted)}
+.sheet{background:#fff;border:1px solid var(--line-strong);border-radius:20px;box-shadow:0 12px 32px #1B1E291F;padding:24px}
+.sheet h4{font-size:18px;font-weight:600}
+.sheet .d{font-size:13px;color:var(--muted);margin-top:4px}
+.f{margin-top:18px}
+label{display:block;font-size:13px;font-weight:500;margin-bottom:8px}
+label em{font-style:normal;color:var(--muted);font-weight:400}
+.input{height:40px;border-radius:10px;border:1px solid var(--line-strong);padding:0 14px;display:flex;align-items:center;font-size:14px;color:var(--muted);background:#fff}
+.input .v{color:var(--fg)}
+.input.focus{border-color:var(--amber-600);box-shadow:0 0 0 4px #E9B03F33}
+.hint{font-size:12px;color:var(--muted);margin-top:6px}
+.sheet .foot{display:flex;justify-content:flex-end;gap:8px;margin-top:24px;padding-top:18px;border-top:1px solid var(--line)}
+.btn.ghost{border-color:transparent;box-shadow:none;background:transparent}
+.empties{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.empty{border:1px dashed var(--line-strong);border-radius:14px;padding:30px 20px;text-align:center;background:var(--bg)}
+.empty .ic{width:44px;height:44px;border-radius:12px;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;margin:0 auto;color:var(--amber-600)}
+.empty b{display:block;font-size:14px;font-weight:600;margin-top:14px}
+.empty p{font-size:13px;color:var(--muted);margin-top:4px}
+.empty .btn{margin-top:16px}
+.del{margin-top:16px;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:#E0654F0F;border:1px solid #E0654F40;font-size:13px}
+.del b{font-weight:500}
+.del .btn.d{margin-left:auto;background:#E0654F14;border-color:#E0654F55;color:var(--clay-text);box-shadow:none}
+.specs{margin-top:40px;display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.spec{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;font-size:12.5px;color:var(--muted);line-height:1.55}
+.spec b{display:block;color:var(--fg);font-size:13px;font-weight:600;margin-bottom:4px}
+
+/* monthly cost */
+.app{height:auto;min-height:900px}
+.ph .btn.primary{height:40px;padding:0 16px;font-size:14px;border-radius:10px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:22px}
+.stat{padding:16px 18px;display:flex;gap:14px;align-items:flex-start}
+.stat .ic{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.stat .ic svg{width:18px;height:18px}
+.stat .k{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:8px}
+.stat .v{font:500 24px "JetBrains Mono";margin-top:4px;letter-spacing:-.01em}
+.stat .v small{font-size:12px;color:var(--muted);font-weight:400;margin-left:4px}
+.stat .s{font-size:12px;color:var(--muted);margin-top:4px}
+.est{font:500 10px "JetBrains Mono";letter-spacing:.06em;text-transform:uppercase;color:#6B5A3E;background:#D9CBB54D;border-radius:5px;padding:2px 6px}
+.mcols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;align-items:start}
+.stack{display:flex;flex-direction:column;gap:16px}
+.ch .sub{font-size:12px;color:var(--muted);margin-top:3px}
+.grp-h{display:flex;align-items:center;justify-content:space-between;margin:16px 0 8px}
+.grp-h:first-of-type{margin-top:4px}
+.grp-h .l{display:flex;align-items:center;gap:10px;font-size:13.5px;font-weight:600}
+.grp-h .r{font:500 13px "JetBrains Mono"}
+.logo{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font:700 11px Poppins}
+.live{display:inline-flex;align-items:center;gap:5px;font:500 10.5px "JetBrains Mono";color:#4E6B35}
+.live::before{content:"";width:6px;height:6px;border-radius:50%;background:#7E9A62;box-shadow:0 0 0 3px #7E9A6233}
+.line{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:12px;border:1px solid var(--line);font-size:13.5px}
+.line + .line{margin-top:6px}
+.line .p{display:flex;align-items:center;gap:10px}
+.line .p svg{width:15px;height:15px;color:var(--muted)}
+.line .a{font:500 13px "JetBrains Mono"}
+.line .a small{color:var(--muted);font-weight:400}
+.hint{margin-top:14px;padding:10px 12px;border-radius:12px;background:var(--bg);font-size:12px;color:var(--muted);display:flex;gap:8px;line-height:1.5}
+.hint svg{width:15px;height:15px;flex-shrink:0;margin-top:1px}
+.bill{display:grid;grid-template-columns:40px 1fr auto auto;gap:12px;align-items:center;padding:11px 12px;border-radius:14px;border:1px solid var(--line);background:#fff}
+.bill + .bill{margin-top:8px}
+.bill.hover{background:var(--bg)}
+.bill .ic{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center}
+.bill .ic svg{width:17px;height:17px}
+.bill .n{font-size:14px;font-weight:500;display:flex;align-items:center;gap:8px}
+.bill .m{font-size:12px;color:var(--muted);margin-top:2px}
+.bill .amt{font:500 14px "JetBrains Mono";text-align:right}
+.bill .amt small{display:block;font-size:10.5px;color:var(--muted);font-weight:400}
+.pchip{display:inline-flex;align-items:center;gap:4px;height:20px;padding:0 7px;border-radius:6px;background:var(--sunken);font:11px "JetBrains Mono";color:var(--muted)}
+.pchip svg{width:11px;height:11px}
+.ra{display:flex;gap:2px;opacity:0}
+.bill.hover .ra{opacity:1}
+.ra span{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;background:#fff;box-shadow:0 1px 2px #1B1E2914;color:var(--muted)}
+.ra svg{width:14px;height:14px}
+.quick{margin-top:14px}
+.quick .l{font:500 10.5px "JetBrains Mono";letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.quick .cs{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.qchip{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:99px;border:1px dashed var(--line-strong);font-size:12.5px;color:var(--muted);background:#fff}
+.qchip svg{width:13px;height:13px}
+.total{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.total span{font-size:13px;color:var(--muted)}
+.total b{font:500 16px "JetBrains Mono"}
+.seg{display:grid;grid-template-columns:repeat(2,1fr);gap:4px;background:var(--sunken);padding:4px;border-radius:10px}
+.seg span{height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;color:var(--muted)}
+.seg span.on{background:#fff;color:var(--fg);box-shadow:0 1px 3px #1B1E291A}
+.money{display:grid;grid-template-columns:1fr 96px;gap:8px}
+.select{height:40px;border-radius:10px;border:1px solid var(--line-strong);padding:0 12px;display:flex;align-items:center;justify-content:space-between;font-size:14px;background:#fff;color:var(--fg)}
+.select svg{width:14px;height:14px;color:var(--muted)}
+.dlg{background:#fff;border:1px solid var(--line-strong);border-radius:20px;box-shadow:0 12px 32px #1B1E291F;overflow:hidden;position:relative}
+.dlg .hd{padding:24px 24px 6px}
+.dlg .hd h4{font-size:18px;font-weight:600}
+.dlg .hd p{font-size:13px;color:var(--muted);margin-top:4px}
+.dlg .x{position:absolute;top:20px;right:20px;color:var(--muted)}
+.dlg .bd{padding:0 24px 22px}
+.dlg .ft{display:flex;justify-content:flex-end;gap:8px;padding:16px 24px;border-top:1px solid var(--line)}
+.mstates{display:grid;grid-template-columns:460px 1fr;gap:24px;margin-top:40px;align-items:start}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/></symbol>
+  <symbol id="ext" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1h5"/></symbol>
+  <symbol id="pen" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4z"/></symbol>
+  <symbol id="trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></symbol>
+  <symbol id="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a1 1 0 011-1h10"/></symbol>
+  <symbol id="at" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M16 12v1.5a2.5 2.5 0 005 0V12a9 9 0 10-3.5 7.1"/></symbol>
+  <symbol id="file" viewBox="0 0 24 24"><path d="M14 3H6a1 1 0 00-1 1v16a1 1 0 001 1h12a1 1 0 001-1V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></symbol>
+  <symbol id="book" viewBox="0 0 24 24"><path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z"/><path d="M4 19V5"/></symbol>
+  <symbol id="arrow" viewBox="0 0 24 24"><path d="M7 17L17 7M9 7h8v8"/></symbol>
+  <symbol id="dash" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></symbol>
+  <symbol id="clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="wallet" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M16 13h2M3 10h18"/></symbol>
+  <symbol id="bag" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2"/></symbol>
+  <symbol id="folder" viewBox="0 0 24 24"><path d="M3 6a1 1 0 011-1h5l2 2h9a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1z"/></symbol>
+  <symbol id="news" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></symbol>
+  <symbol id="gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9L7 7M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></symbol>
+  <symbol id="bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9M10 21h4"/></symbol>
+  <symbol id="panel" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></symbol>
+  <symbol id="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+
+  <symbol id="x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="bolt" viewBox="0 0 24 24"><path d="M13 3L5 13h6l-1 8 8-10h-6z"/></symbol>
+  <symbol id="wifi" viewBox="0 0 24 24"><path d="M5 12.5a10 10 0 0114 0M8.5 16a5 5 0 017 0M2 9a14.5 14.5 0 0120 0"/><circle cx="12" cy="19.5" r="1"/></symbol>
+  <symbol id="drop" viewBox="0 0 24 24"><path d="M12 3s6 6.5 6 11a6 6 0 01-12 0c0-4.5 6-11 6-11z"/></symbol>
+  <symbol id="phone" viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 17h2"/></symbol>
+  <symbol id="home" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9a1 1 0 01-1 1h-5v-6h-4v6H5a1 1 0 01-1-1z"/></symbol>
+  <symbol id="server" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="7" rx="1.5"/><rect x="4" y="13" width="16" height="7" rx="1.5"/><path d="M8 7.5h.01M8 16.5h.01"/></symbol>
+  <symbol id="info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+  <symbol id="dots" viewBox="0 0 24 24"><circle cx="6" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="18" cy="12" r="1"/></symbol>
+  <symbol id="fold" viewBox="0 0 24 24"><path d="M3 6a1 1 0 011-1h5l2 2h9a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1z"/></symbol>
+  <symbol id="music" viewBox="0 0 24 24"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></symbol>
+  <symbol id="cdown" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+</svg>
+<div class="board">
+  <div class="board-head">
+    <div><div class="eyebrow">MasterMe · Amber Lens v2.0 · Page design</div><h1>Monthly cost</h1></div>
+    <p>Desktop 1440 × 900 · route <b>/monthly-cost</b><br>Data: MonthlyCost (name, category, amount, currency, notes, projectId) · apps-summary (Neon estimate, Vercel)</p>
+  </div>
+  <div class="frame">
+    <div class="chrome"><i></i><i></i><i></i><div class="url">localhost:3000/monthly-cost</div></div>
+    <div class="app">
+      <aside class="side">
+        <div class="brand"><img src="../public/images/avatar.png" alt=""><b>MasterMe</b></div>
+        <nav class="nav">
+          <div class="grp">Dashboards</div>
+          <a><svg class="i"><use href="#dash"/></svg>Dashboard</a>
+          <div class="grp">Life management</div>
+          <a><svg class="i"><use href="#globe"/></svg>Portfolio</a>
+          <a><svg class="i"><use href="#book"/></svg>Learning</a>
+          <a><svg class="i"><use href="#clock"/></svg>Timeline</a>
+          <a class="on"><svg class="i"><use href="#wallet"/></svg>Monthly Cost</a>
+          <div class="grp">Career &amp; business</div>
+          <a><svg class="i"><use href="#bag"/></svg>Jobs</a>
+          <a><svg class="i"><use href="#folder"/></svg>Projects</a>
+          <a><svg class="i"><use href="#news"/></svg>Tech News</a>
+          <div class="grp">Account</div>
+          <a><svg class="i"><use href="#gear"/></svg>Settings</a>
+        </nav>
+      </aside>
+
+      <div class="main">
+        <div class="hdr">
+          <span class="ib" style="width:32px;height:32px"><svg class="i"><use href="#panel"/></svg></span>
+          <span class="sep"></span>
+          <div class="crumb">MasterMe <span style="opacity:.6">/</span> <b>Monthly Cost</b></div>
+          <span class="date">Wed, Sep 23</span>
+          <span class="ib"><svg class="i"><use href="#bell"/></svg></span>
+          <span class="user"><img src="../public/images/avatar.png" alt="">Aymen<svg class="i" style="width:14px;height:14px;color:var(--muted)"><use href="#chev"/></svg></span>
+        </div>
+
+        <div class="content">
+  <div class="ph">
+    <div><h2>Monthly cost</h2><p>What you pay every month: app services from your projects, plus home bills.</p></div>
+    <span class="btn primary"><svg class="i"><use href="#plus"/></svg>Add cost</span>
+  </div>
+
+  <div class="stats">
+    <div class="card stat"><div class="ic t-sky"><svg class="i"><use href="#server"/></svg></div><div><div class="k">Apps &amp; services <span class="est">estimate</span></div><div class="v">$27.40<small>/ mo</small></div><div class="s">Neon + Vercel · 3 projects</div></div></div>
+    <div class="card stat"><div class="ic t-amber"><svg class="i"><use href="#home"/></svg></div><div><div class="k">Home bills</div><div class="v">4,090<small>MAD / mo</small></div><div class="s">4 bills</div></div></div>
+    <div class="card stat"><div class="ic t-stone"><svg class="i"><use href="#dots"/></svg></div><div><div class="k">Other</div><div class="v">149<small>MAD / mo</small></div><div class="s">1 cost</div></div></div>
+  </div>
+
+  <div class="mcols">
+    <div class="card">
+      <div class="ch" style="margin-bottom:8px;align-items:flex-start"><div><h3>Apps &amp; services</h3><p class="sub">Computed from your Projects</p></div><span class="live">LIVE</span></div>
+      <div class="grp-h"><div class="l"><span class="logo t-olive">N</span>Neon <span class="est">estimate</span></div><span class="r">$7.40</span></div>
+      <div class="line"><span class="p"><svg class="i"><use href="#fold"/></svg>MasterMe</span><span class="a">$4.85 <small>/ mo</small></span></div>
+      <div class="line"><span class="p"><svg class="i"><use href="#fold"/></svg>Atlas CRM</span><span class="a">$2.55 <small>/ mo</small></span></div>
+      <div class="grp-h"><div class="l"><span class="logo t-ink">▲</span>Vercel</div><span class="r">$20.00</span></div>
+      <div class="line"><span class="p"><svg class="i"><use href="#fold"/></svg>Atlas CRM</span><span class="a">$20.00 <small>/ mo</small></span></div>
+      <div class="hint"><svg class="i"><use href="#info"/></svg><span>Link a Neon project or tick “Hosted on Vercel” on a project to count it here. Neon is estimated from live usage.</span></div>
+    </div>
+
+    <div class="stack">
+      <div class="card">
+        <div class="ch"><div class="t"><h3>Home bills</h3><span class="count">4</span></div><span class="btn"><svg class="i"><use href="#plus"/></svg>Add bill</span></div>
+        <div class="bill"><div class="ic t-amber"><svg class="i"><use href="#home"/></svg></div><div><div class="n">Rent</div><div class="m">Apartment, Maarif</div></div><div class="ra"><span><svg class="i"><use href="#pen"/></svg></span><span><svg class="i"><use href="#trash"/></svg></span></div><div class="amt">3,200<small>MAD / mo</small></div></div>
+        <div class="bill hover"><div class="ic t-olive"><svg class="i"><use href="#bolt"/></svg></div><div><div class="n">Electricity</div><div class="m">Lydec · avg. of last 3 months</div></div><div class="ra"><span><svg class="i"><use href="#pen"/></svg></span><span><svg class="i"><use href="#trash"/></svg></span></div><div class="amt">420<small>MAD / mo</small></div></div>
+        <div class="bill"><div class="ic t-sky"><svg class="i"><use href="#wifi"/></svg></div><div><div class="n">Wifi / Internet</div><div class="m">Fibre 100 Mb</div></div><div class="ra"><span><svg class="i"><use href="#pen"/></svg></span><span><svg class="i"><use href="#trash"/></svg></span></div><div class="amt">349<small>MAD / mo</small></div></div>
+        <div class="bill"><div class="ic t-violet"><svg class="i"><use href="#phone"/></svg></div><div><div class="n">Phone<span class="pchip"><svg class="i"><use href="#fold"/></svg>Atlas CRM</span></div><div class="m">Forfait 50 Go</div></div><div class="ra"><span><svg class="i"><use href="#pen"/></svg></span><span><svg class="i"><use href="#trash"/></svg></span></div><div class="amt">121<small>MAD / mo</small></div></div>
+        <div class="quick"><div class="l">Quick add</div><div class="cs"><span class="qchip"><svg class="i"><use href="#plus"/></svg>Water</span></div></div>
+        <div class="total"><span>Total home bills</span><b>4,090 MAD / mo</b></div>
+      </div>
+      <div class="card">
+        <div class="ch"><div class="t"><h3>Other</h3><span class="count">1</span></div></div>
+        <div class="bill"><div class="ic t-stone"><svg class="i"><use href="#music"/></svg></div><div><div class="n">Spotify Duo</div><div class="m">Family plan</div></div><div class="ra"><span><svg class="i"><use href="#pen"/></svg></span><span><svg class="i"><use href="#trash"/></svg></span></div><div class="amt">149<small>MAD / mo</small></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mstates">
+    <div>
+      <div class="st-h"><div class="eyebrow">Popup · add / edit cost</div><b>Add cost <span>· same popup for edit</span></b></div>
+      <div class="dlg">
+        <svg class="i x"><use href="#x"/></svg>
+        <div class="hd"><h4>Add monthly cost</h4><p>A bill or subscription you pay every month.</p></div>
+        <div class="bd">
+          <div class="f"><label>Name</label><div class="input focus"><span class="v">Water</span></div></div>
+          <div class="f"><label>Category</label><div class="seg"><span class="on">Home</span><span>Other</span></div></div>
+          <div class="f"><label>Amount per month</label><div class="money"><div class="input"><span class="v mono">85</span></div><div class="select"><span class="mono">MAD</span><svg class="i"><use href="#cdown"/></svg></div></div></div>
+          <div class="f"><label>Notes <em>(optional)</em></label><div class="input">Radeef, billed every 2 months</div></div>
+          <div class="f"><label>Link to a project <em>(optional)</em></label><div class="select"><span style="color:var(--muted)">None</span><svg class="i"><use href="#cdown"/></svg></div><div class="hint" style="margin-top:8px;padding:0;background:none">Linked costs also show on that project's card.</div></div>
+        </div>
+        <div class="ft"><span class="btn ghost lg">Cancel</span><span class="btn primary lg">Save cost</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="st-h"><div class="eyebrow">Empty · no home bills yet</div><b>First visit <span>· suggestions add in one click</span></b></div>
+      <div class="card">
+        <div class="ch"><div class="t"><h3>Home bills</h3><span class="count">0</span></div><span class="btn"><svg class="i"><use href="#plus"/></svg>Add bill</span></div>
+        <div class="empty" style="padding:34px 20px"><div class="ic"><svg class="i"><use href="#home"/></svg></div><b>No home bills yet</b><p>Start with the usual ones. You can edit the amounts after.</p>
+          <div class="cs" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px"><span class="qchip"><svg class="i"><use href="#plus"/></svg>Electricity</span><span class="qchip"><svg class="i"><use href="#plus"/></svg>Wifi / Internet</span><span class="qchip"><svg class="i"><use href="#plus"/></svg>Water</span><span class="qchip"><svg class="i"><use href="#plus"/></svg>Phone</span><span class="qchip"><svg class="i"><use href="#plus"/></svg>Rent</span></div>
+        </div>
+      </div>
+      <div class="specs" style="grid-template-columns:1fr 1fr;margin-top:16px">
+        <div class="spec"><b>Currencies</b>Apps are billed in USD, bills in MAD. Totals stay per currency; nothing is converted.</div>
+        <div class="spec"><b>Quick add</b>A suggestion chip opens the popup with the name filled in, so you only type the amount.</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

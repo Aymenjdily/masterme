@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MasterMe Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Amber Lens palette — sampled from the profile photo, light-first */
+  --bg:#F6F4EF;        /* Casablanca white — page */
+  --surface:#FFFFFF;   /* cards */
+  --sunken:#EFECE5;    /* wells, tabs track */
+  --sidebar:#FBFAF7;
+  --line:#1B1E2914;
+  --line-strong:#1B1E2926;
+  --fg:#1B1E29;        /* tee ink */
+  --fg-2:#3A4056;
+  --muted:#5E6578;
+  --ink:#0E0F14;       /* frames */
+  --stone:#D9CBB5;     /* rooftops */
+  --stone-text:#6B5A3E;
+  --amber:#E9B03F;     /* lenses — primary */
+  --amber-hover:#DDA12C;
+  --amber-600:#C98A1E;
+  --amber-text:#9A6710;
+  --sky:#5B9DE6;       /* sky — info / links */
+  --sky-text:#2F6FB8;
+  --olive:#7E9A62;     /* palms — success */
+  --olive-text:#4E6B35;
+  --clay:#E0654F;      /* danger */
+  --clay-text:#B8432F;
+  --violet-text:#7A4FC0;
+  --shadow:0 1px 2px #1B1E290A,0 4px 16px #1B1E290D;
+}
+.dark{
+  --bg:#15171F;--surface:#222634;--sunken:#15171F;--sidebar:#1B1E29;
+  --line:#FFFFFF14;--line-strong:#3A4056;--fg:#F6F4EF;--fg-2:#D5D9E3;--muted:#9AA3B8;
+  --amber-text:#E9B03F;--sky-text:#A9CBF2;--olive-text:#A9C98C;--clay-text:#F08C79;--stone-text:#D9CBB5;
+  --shadow:none;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:1600px;background:var(--bg);color:var(--fg);font-family:Poppins,sans-serif;-webkit-font-smoothing:antialiased}
+.mono{font-family:"JetBrains Mono",monospace}
+.page{padding:56px 64px 64px}
+.eyebrow{font:500 11px "JetBrains Mono",monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+h2{font:600 22px Poppins;letter-spacing:-.01em;margin-top:6px}
+.sec{margin-top:44px}
+.sec-head{display:flex;align-items:baseline;justify-content:space-between;border-bottom:1px solid var(--line-strong);padding-bottom:14px;margin-bottom:22px}
+.sec-head .n{font:500 12px "JetBrains Mono";color:var(--amber-text)}
+.grid{display:grid;gap:20px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+
+/* header */
+.hero{display:grid;grid-template-columns:auto 1fr auto;gap:36px;align-items:center;padding:36px 40px;border-radius:24px;
+  background:radial-gradient(900px 300px at 88% -30%, #5B9DE62E, transparent 60%),radial-gradient(600px 260px at 18% 140%, #E9B03F33, transparent 60%),var(--surface);
+  border:1px solid var(--line);box-shadow:var(--shadow)}
+.avatar{width:132px;height:132px;border-radius:50%;padding:4px;background:conic-gradient(from 200deg,var(--amber),var(--sky),var(--amber))}
+.avatar img{width:100%;height:100%;border-radius:50%;object-fit:cover;border:4px solid #fff;display:block}
+.hero h1{font:700 52px/1.05 Poppins;letter-spacing:-.03em}
+.hero h1 span{color:var(--amber-600)}
+.hero p{color:var(--muted);font-size:16px;margin-top:12px;max-width:640px;line-height:1.6}
+.meta{display:grid;grid-template-columns:auto auto;gap:8px 24px;font:12px "JetBrains Mono";color:var(--muted)}
+.meta b{color:var(--fg);font-weight:500}
+
+.source{display:grid;grid-template-columns:repeat(7,1fr);border-radius:14px;overflow:hidden;margin-top:20px;height:64px;border:1px solid var(--line)}
+.source div{display:flex;align-items:flex-end;padding:10px 12px;font:500 11px "JetBrains Mono"}
+
+/* swatches */
+.sw{border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--surface);box-shadow:var(--shadow)}
+.sw .c{height:108px;padding:12px;display:flex;align-items:flex-start;justify-content:flex-end;border-bottom:1px solid var(--line)}
+.sw .c i{font:500 10px "JetBrains Mono";font-style:normal;padding:3px 7px;border-radius:99px;background:#1B1E29B3;color:#fff}
+.sw .l{padding:12px 14px}
+.sw .l b{display:block;font-weight:600;font-size:14px}
+.sw .l span{display:block;font:12px "JetBrains Mono";color:var(--muted);margin-top:3px}
+.ramp{display:flex;border-radius:10px;overflow:hidden;height:40px;margin-top:12px;border:1px solid var(--line)}
+.ramp div{flex:1;display:flex;align-items:flex-end;padding:4px 6px;font:9px "JetBrains Mono"}
+
+/* type */
+.type-row{display:grid;grid-template-columns:150px 1fr 220px;align-items:baseline;padding:14px 0;border-bottom:1px solid var(--line)}
+.type-row:last-child{border:0}
+.type-row .t,.type-row .s{font:12px "JetBrains Mono";color:var(--muted)}
+.type-row .s{text-align:right}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 18px;border-radius:10px;font:500 14px Poppins;border:1px solid transparent;white-space:nowrap}
+.btn-primary{background:var(--amber);color:var(--ink);box-shadow:0 1px 2px #9A671033}
+.btn-primary.hover{background:var(--amber-hover);box-shadow:0 0 0 4px #E9B03F40}
+.btn-secondary{background:var(--surface);color:var(--fg);border-color:var(--line-strong);box-shadow:0 1px 2px #1B1E290D}
+.btn-secondary.hover{background:var(--sunken)}
+.btn-ghost{color:var(--fg)}
+.btn-ghost.hover{background:var(--sunken)}
+.btn-danger{background:#E0654F14;color:var(--clay-text);border-color:#E0654F55}
+.btn-sky{background:var(--sky);color:var(--ink)}
+.btn.dis{opacity:.4;box-shadow:none}
+.btn-sm{height:32px;padding:0 12px;font-size:13px;border-radius:8px}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.lbl{font:11px "JetBrains Mono";color:var(--muted);width:84px}
+
+/* inputs */
+.field label{display:block;font-size:13px;font-weight:500;margin-bottom:8px}
+.input{height:42px;border-radius:10px;background:var(--surface);border:1px solid var(--line-strong);padding:0 14px;display:flex;align-items:center;font-size:14px;color:var(--muted);gap:10px}
+.input.focus{border-color:var(--amber-600);box-shadow:0 0 0 4px #E9B03F33;color:var(--fg)}
+.input.err{border-color:var(--clay);box-shadow:0 0 0 4px #E0654F1F;color:var(--fg)}
+.hint{font-size:12px;color:var(--muted);margin-top:6px}
+.hint.e{color:var(--clay-text)}
+
+/* badges */
+.badge{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:99px;font:500 12px Poppins;border:1px solid}
+.badge::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.b-new{color:var(--sky-text);background:#5B9DE61A;border-color:#5B9DE64D}
+.b-applied{color:var(--amber-text);background:#E9B03F26;border-color:#E9B03F66}
+.b-int{color:var(--violet-text);background:#A67BE51A;border-color:#A67BE54D}
+.b-rej{color:var(--clay-text);background:#E0654F14;border-color:#E0654F4D}
+.b-acc{color:var(--olive-text);background:#7E9A6224;border-color:#7E9A6266}
+.b-neutral{color:var(--muted);background:#1B1E2908;border-color:var(--line-strong)}
+.tag{display:inline-flex;height:22px;padding:0 8px;border-radius:6px;background:var(--sunken);font:11px "JetBrains Mono";color:var(--stone-text);align-items:center}
+
+/* misc controls */
+.tabs{display:inline-flex;background:var(--sunken);padding:4px;border-radius:12px;gap:4px}
+.tabs span{padding:7px 14px;border-radius:8px;font-size:13px;color:var(--muted)}
+.tabs span.on{background:var(--surface);color:var(--fg);box-shadow:0 1px 3px #1B1E291A,inset 0 -2px 0 var(--amber)}
+.cb{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--line-strong);background:var(--surface);display:inline-flex;align-items:center;justify-content:center}
+.cb.on{background:var(--amber);border-color:var(--amber)}
+.switch{width:38px;height:22px;border-radius:99px;background:#D8D4CB;position:relative}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px #0003}
+.switch.on{background:var(--amber)}.switch.on::after{left:19px}
+
+.radius-box{width:72px;height:72px;background:var(--surface);border:1px solid var(--line-strong)}
+.sp{background:var(--amber);height:14px;border-radius:3px}
+.elev{height:88px;border-radius:14px;background:var(--surface);display:flex;align-items:flex-end;padding:12px;font:11px "JetBrains Mono";color:var(--muted)}
+
+/* app preview */
+.app{display:grid;grid-template-columns:232px 1fr;border-radius:20px;overflow:hidden;border:1px solid var(--line-strong);background:var(--bg);box-shadow:0 24px 60px #1B1E2914}
+.side{background:var(--sidebar);border-right:1px solid var(--line);padding:20px 14px}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 8px 20px}
+.brand img{width:34px;height:34px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 2px var(--amber)}
+.brand b{font-size:16px;font-weight:600}
+.nav a{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:10px;font-size:13.5px;color:var(--muted);margin-bottom:2px}
+.nav a.on{background:var(--surface);color:var(--fg);position:relative;box-shadow:0 1px 3px #1B1E2914;font-weight:500}
+.nav a.on::before{content:"";position:absolute;left:-14px;top:9px;bottom:9px;width:3px;border-radius:0 3px 3px 0;background:var(--amber)}
+.nav a.on svg{stroke:var(--amber-600)}
+.nav svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nav .grp{font:10px "JetBrains Mono";letter-spacing:.12em;color:var(--muted);opacity:.7;padding:16px 10px 8px;text-transform:uppercase}
+.main{padding:26px 30px}
+.topbar{display:flex;justify-content:space-between;align-items:center}
+.topbar h3{font:600 24px Poppins;letter-spacing:-.02em}
+.topbar p{color:var(--muted);font-size:13px;margin-top:2px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:22px}
+.stat{padding:16px 18px}
+.stat .k{font-size:12px;color:var(--muted)}
+.stat .v{font:600 28px Poppins;letter-spacing:-.02em;margin-top:6px}
+.stat .d{font:11px "JetBrains Mono";margin-top:6px}
+.spark{height:28px;margin-top:8px}
+.two{display:grid;grid-template-columns:1.25fr 1fr;gap:14px;margin-top:14px}
+.panel{padding:18px}
+.panel-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.panel-h b{font-size:15px;font-weight:600}
+.job{display:grid;grid-template-columns:40px 1fr auto;gap:12px;align-items:center;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);margin-bottom:8px}
+.logo-sq{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
+.job .t{font-size:14px;font-weight:500}
+.job .m{font-size:12px;color:var(--muted);margin-top:2px}
+.blocks{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+.blk{height:96px;border-radius:10px;padding:8px;font-size:11px;font-weight:500;display:flex;flex-direction:column;justify-content:space-between;border:1px solid var(--line)}
+.blk .h{font:10px "JetBrains Mono";opacity:.8}
+.blk.done{background:#7E9A621F;border-color:#7E9A6255;color:#3F5A2A}
+.blk.prog{background:#E9B03F24;border-color:var(--amber);color:#6B470A;box-shadow:0 0 0 3px #E9B03F26}
+.blk.plan{background:var(--bg);color:var(--fg)}
+.blk.empty{background:transparent;border-style:dashed;border-color:var(--line-strong);color:var(--muted);align-items:center;justify-content:center}
+.bar{height:6px;border-radius:99px;background:var(--sunken);overflow:hidden;margin-top:14px}
+.bar i{display:block;height:100%;width:37.5%;background:linear-gradient(90deg,var(--olive),var(--amber))}
+.news{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.news:last-child{border:0}
+.news .star{font:12px "JetBrains Mono";color:var(--amber-text);white-space:nowrap}
+.news b{font-size:13.5px;font-weight:500}
+.news p{font-size:12px;color:var(--muted);margin-top:3px}
+
+/* dark preview */
+.darkbox{background:var(--bg);color:var(--fg);border-radius:20px;padding:24px;border:1px solid #0000001a}
+.dark .card{box-shadow:none}
+.dark .b-new{color:#A9CBF2}.dark .b-applied{color:#E9B03F}
+.principle{padding:20px}
+.principle .i{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font:600 14px "JetBrains Mono";margin-bottom:14px}
+.principle b{font-size:15px;font-weight:600}
+.principle p{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.55}
+.foot{margin-top:40px;display:flex;justify-content:space-between;font:12px "JetBrains Mono";color:var(--muted);border-top:1px solid var(--line-strong);padding-top:18px}
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="hero">
+  <div class="avatar"><img src="../public/images/avatar.png" alt=""></div>
+  <div>
+    <div class="eyebrow">MasterMe · Design System v2.0 · Light</div>
+    <h1 style="margin-top:10px">Amber <span>Lens</span></h1>
+    <p>A bright, calm, light-first system for a personal command center. The palette comes from the profile photo: white Casablanca rooftops, sky blue, amber lenses, charcoal tee and black frames.</p>
+  </div>
+  <div class="meta">
+    <span>Owner</span><b>Aymen Jdily</b>
+    <span>Role</span><b>Frontend Engineer</b>
+    <span>Base</span><b>Casablanca, MA</b>
+    <span>Stack</span><b>Next · Tailwind · shadcn</b>
+    <span>Mode</span><b>Light-first + Dark</b>
+    <span>Date</span><b>2026-09-23</b>
+  </div>
+</div>
+
+<div class="source">
+  <div style="background:#F6F4EF;color:#5E6578">rooftops</div>
+  <div style="background:#FFFFFF;color:#5E6578">paper</div>
+  <div style="background:#D9CBB5;color:#3A4056">stone</div>
+  <div style="background:#E9B03F;color:#0E0F14">lenses</div>
+  <div style="background:#5B9DE6;color:#0E0F14">sky</div>
+  <div style="background:#7E9A62;color:#0E0F14">palms</div>
+  <div style="background:#1B1E29;color:#9AA3B8">tee</div>
+</div>
+
+<!-- 01 COLOR -->
+<div class="sec">
+  <div class="sec-head"><div><div class="eyebrow">Foundation</div><h2>Color</h2></div><span class="n">01</span></div>
+  <div class="grid" style="grid-template-columns:repeat(6,1fr)">
+    <div class="sw"><div class="c" style="background:#F6F4EF"><i>bg</i></div><div class="l"><b>Chalk</b><span>#F6F4EF · --background</span></div></div>
+    <div class="sw"><div class="c" style="background:#FFFFFF"><i>card</i></div><div class="l"><b>Paper</b><span>#FFFFFF · --card</span></div></div>
+    <div class="sw"><div class="c" style="background:var(--amber)"><i>primary</i></div><div class="l"><b>Amber</b><span>#E9B03F · --primary</span></div></div>
+    <div class="sw"><div class="c" style="background:var(--sky)"><i>info · link</i></div><div class="l"><b>Sky</b><span>#5B9DE6 · --info</span></div></div>
+    <div class="sw"><div class="c" style="background:#1B1E29"><i>fg</i></div><div class="l"><b>Ink</b><span>#1B1E29 · --foreground</span></div></div>
+    <div class="sw"><div class="c" style="background:var(--stone)"><i>accent</i></div><div class="l"><b>Stone</b><span>#D9CBB5 · --accent</span></div></div>
+  </div>
+  <div class="grid" style="grid-template-columns:1fr 1fr 1fr;margin-top:20px">
+    <div>
+      <div class="eyebrow">Neutral ramp · surfaces & text</div>
+      <div class="ramp">
+        <div style="background:#FFFFFF;color:#5E6578">0</div><div style="background:#FBFAF7;color:#5E6578">25</div><div style="background:#F6F4EF;color:#5E6578">50</div><div style="background:#EFECE5;color:#5E6578">100</div><div style="background:#D8D4CB;color:#3A4056">200</div><div style="background:#5E6578;color:#F6F4EF">500</div><div style="background:#3A4056;color:#F6F4EF">700</div><div style="background:#1B1E29;color:#9AA3B8">900</div>
+      </div>
+    </div>
+    <div>
+      <div class="eyebrow">Amber ramp · primary</div>
+      <div class="ramp">
+        <div style="background:#FBEBC6;color:#6B4A0E">100</div><div style="background:#F6D68A;color:#6B4A0E">200</div><div style="background:#F2C25E;color:#4A330A">300</div><div style="background:#E9B03F;color:#2A1D05">500</div><div style="background:#C98A1E;color:#FBEBC6">600</div><div style="background:#9A6710;color:#FBEBC6">700 text</div><div style="background:#5E3F0B;color:#FBEBC6">900</div>
+      </div>
+    </div>
+    <div>
+      <div class="eyebrow">Semantic · fill / text on light</div>
+      <div class="ramp">
+        <div style="background:#7E9A62;color:#0E0F14">success</div><div style="background:#4E6B35;color:#fff">text</div><div style="background:#E0654F;color:#0E0F14">danger</div><div style="background:#B8432F;color:#fff">text</div><div style="background:#5B9DE6;color:#0E0F14">info</div><div style="background:#2F6FB8;color:#fff">text</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 02 TYPE + 03 SCALE -->
+<div class="grid" style="grid-template-columns:1.35fr 1fr;gap:40px">
+  <div class="sec">
+    <div class="sec-head"><div><div class="eyebrow">Foundation</div><h2>Typography</h2></div><span class="n">02</span></div>
+    <div class="type-row"><span class="t">Display</span><span style="font:700 44px/1.1 Poppins;letter-spacing:-.03em">Master your day</span><span class="s">Poppins 700 · 44/48 · -3%</span></div>
+    <div class="type-row"><span class="t">H1 · page</span><span style="font:600 28px Poppins;letter-spacing:-.02em">Job offers in Morocco</span><span class="s">Poppins 600 · 28/34 · -2%</span></div>
+    <div class="type-row"><span class="t">H2 · section</span><span style="font:600 20px Poppins;letter-spacing:-.01em">Recruiter follow-ups</span><span class="s">Poppins 600 · 20/28</span></div>
+    <div class="type-row"><span class="t">H3 · card</span><span style="font:600 15px Poppins">Senior Frontend Engineer</span><span class="s">Poppins 600 · 15/22</span></div>
+    <div class="type-row"><span class="t">Body</span><span style="font:400 14px/1.6 Poppins;color:var(--fg-2)">Track applications, billing and learning paths in one calm place.</span><span class="s">Poppins 400 · 14/22</span></div>
+    <div class="type-row"><span class="t">Caption</span><span style="font:400 12px Poppins;color:var(--muted)">Scraped 2h ago · LinkedIn · Casablanca</span><span class="s">Poppins 400 · 12/16</span></div>
+    <div class="type-row"><span class="t">Data · mono</span><span class="mono" style="font-size:13px;color:var(--amber-text)">12,400 MAD · 09:00–10:00 · ★ 2.4k</span><span class="s">JetBrains Mono 500 · 13</span></div>
+  </div>
+  <div class="sec">
+    <div class="sec-head"><div><div class="eyebrow">Foundation</div><h2>Space · Radius · Elevation</h2></div><span class="n">03</span></div>
+    <div class="eyebrow" style="margin-bottom:10px">Spacing · 4px base</div>
+    <div class="grid" style="grid-template-columns:48px 1fr;gap:8px 12px;align-items:center;font:11px 'JetBrains Mono';color:var(--muted)">
+      <span>4</span><div class="sp" style="width:4px"></div>
+      <span>8</span><div class="sp" style="width:8px"></div>
+      <span>12</span><div class="sp" style="width:12px"></div>
+      <span>16</span><div class="sp" style="width:16px"></div>
+      <span>24</span><div class="sp" style="width:24px"></div>
+      <span>32</span><div class="sp" style="width:32px"></div>
+      <span>48</span><div class="sp" style="width:48px"></div>
+      <span>64</span><div class="sp" style="width:64px"></div>
+    </div>
+    <div class="eyebrow" style="margin:22px 0 10px">Radius</div>
+    <div class="row" style="gap:16px;font:11px 'JetBrains Mono';color:var(--muted)">
+      <div style="text-align:center"><div class="radius-box" style="border-radius:6px"></div><div style="margin-top:6px">sm 6</div></div>
+      <div style="text-align:center"><div class="radius-box" style="border-radius:10px"></div><div style="margin-top:6px">md 10</div></div>
+      <div style="text-align:center"><div class="radius-box" style="border-radius:16px"></div><div style="margin-top:6px">lg 16</div></div>
+      <div style="text-align:center"><div class="radius-box" style="border-radius:24px"></div><div style="margin-top:6px">xl 24</div></div>
+      <div style="text-align:center"><div class="radius-box" style="border-radius:99px"></div><div style="margin-top:6px">full</div></div>
+    </div>
+    <div class="eyebrow" style="margin:22px 0 10px">Elevation</div>
+    <div class="grid" style="grid-template-columns:repeat(3,1fr);gap:12px">
+      <div class="elev" style="border:1px solid var(--line-strong)">0 · border</div>
+      <div class="elev" style="border:1px solid var(--line);box-shadow:0 1px 2px #1B1E290A,0 4px 16px #1B1E290D">1 · card</div>
+      <div class="elev" style="border:1px solid var(--line);box-shadow:0 12px 32px #1B1E291F">2 · popover</div>
+    </div>
+  </div>
+</div>
+
+<!-- 04 COMPONENTS -->
+<div class="sec">
+  <div class="sec-head"><div><div class="eyebrow">Components · shadcn/ui tokens</div><h2>Controls & states</h2></div><span class="n">04</span></div>
+  <div class="grid" style="grid-template-columns:1.15fr 1fr 1fr;gap:20px">
+    <div class="card" style="padding:22px">
+      <div class="eyebrow" style="margin-bottom:16px">Buttons</div>
+      <div class="row" style="margin-bottom:14px"><span class="lbl">default</span><span class="btn btn-primary">+ New project</span><span class="btn btn-secondary">Export</span><span class="btn btn-ghost">Cancel</span></div>
+      <div class="row" style="margin-bottom:14px"><span class="lbl">hover</span><span class="btn btn-primary hover">+ New project</span><span class="btn btn-secondary hover">Export</span><span class="btn btn-ghost hover">Cancel</span></div>
+      <div class="row" style="margin-bottom:14px"><span class="lbl">disabled</span><span class="btn btn-primary dis">+ New project</span><span class="btn btn-secondary dis">Export</span></div>
+      <div class="row"><span class="lbl">intent</span><span class="btn btn-sky btn-sm">Open on LinkedIn ↗</span><span class="btn btn-danger btn-sm">Delete</span></div>
+    </div>
+    <div class="card" style="padding:22px">
+      <div class="eyebrow" style="margin-bottom:16px">Inputs</div>
+      <div class="field"><label>Company</label><div class="input">e.g. OCP Group</div></div>
+      <div class="field" style="margin-top:14px"><label>Monthly amount</label><div class="input focus"><span class="mono" style="color:var(--muted)">MAD</span>4 500<span style="width:1.5px;height:18px;background:var(--amber-600);margin-left:-8px"></span></div><div class="hint">Recurring, billed on the 1st</div></div>
+      <div class="field" style="margin-top:14px"><label>Resource URL</label><div class="input err">github.com/…</div><div class="hint e">Enter a valid https:// URL</div></div>
+    </div>
+    <div class="card" style="padding:22px">
+      <div class="eyebrow" style="margin-bottom:16px">Job status</div>
+      <div class="row" style="gap:8px"><span class="badge b-new">New</span><span class="badge b-applied">Applied</span><span class="badge b-int">Interviewing</span><span class="badge b-rej">Rejected</span><span class="badge b-acc">Accepted</span></div>
+      <div class="eyebrow" style="margin:20px 0 12px">Project type · tags</div>
+      <div class="row" style="gap:8px"><span class="badge b-neutral">Client</span><span class="badge b-neutral">Personal</span><span class="badge b-applied">SaaS</span><span class="tag">#nextjs</span><span class="tag">#rust</span></div>
+      <div class="eyebrow" style="margin:20px 0 12px">Selection</div>
+      <div class="tabs"><span class="on">Offers</span><span>Applied</span><span>Follow-up</span></div>
+      <div class="row" style="gap:18px;margin-top:14px;font-size:13px">
+        <span class="row" style="gap:8px"><span class="cb on"><svg width="11" height="11" viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3.5" stroke="#0E0F14" stroke-width="2" fill="none" stroke-linecap="round"/></svg></span>Done</span>
+        <span class="row" style="gap:8px"><span class="cb"></span>Todo</span>
+        <span class="row" style="gap:8px"><span class="switch on"></span>Alerts</span>
+        <span class="row" style="gap:8px"><span class="switch"></span>Email</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 05 APP PREVIEW -->
+<div class="sec">
+  <div class="sec-head"><div><div class="eyebrow">Patterns</div><h2>Dashboard in context</h2></div><span class="n">05</span></div>
+  <div class="app">
+    <aside class="side">
+      <div class="brand"><img src="../public/images/avatar.png" alt=""><b>MasterMe</b></div>
+      <nav class="nav">
+        <a class="on"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Dashboard</a>
+        <a><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Timeline</a>
+        <a><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>Jobs<span class="badge b-new" style="margin-left:auto;height:20px;padding:0 7px;font-size:11px">12</span></a>
+        <a><svg viewBox="0 0 24 24"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 12l9 4 9-4M3 17l9 4 9-4"/></svg>Projects</a>
+        <a><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M8 15l4-5 3 3 5-6"/></svg>Learning</a>
+        <div class="grp">Library</div>
+        <a><svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1"/></svg>Portfolio</a>
+        <a><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg>Tech radar</a>
+      </nav>
+    </aside>
+    <div class="main">
+      <div class="topbar">
+        <div><h3>Good morning, Aymen</h3><p>Wednesday, 23 September · 3 of 8 blocks done</p></div>
+        <div class="row"><span class="btn btn-secondary btn-sm">This week ▾</span><span class="btn btn-primary btn-sm">+ Add block</span></div>
+      </div>
+      <div class="stats">
+        <div class="card stat"><div class="k">New job offers</div><div class="v">12</div><div class="d" style="color:var(--sky-text)">+5 since yesterday</div></div>
+        <div class="card stat"><div class="k">Monthly recurring</div><div class="v" style="font-family:'JetBrains Mono';font-size:24px;font-weight:500">9,800 <span style="font-size:13px;color:var(--muted)">MAD</span></div><div class="d" style="color:var(--olive-text)">▲ 12% vs Aug</div></div>
+        <div class="card stat"><div class="k">Follow-ups due</div><div class="v">3</div><div class="d" style="color:var(--amber-text)">1 overdue</div></div>
+        <div class="card stat"><div class="k">Learning streak</div><div class="v">14<span style="font-size:14px;color:var(--muted)"> days</span></div>
+          <svg class="spark" viewBox="0 0 160 28" width="100%"><polyline points="0,22 20,18 40,20 60,12 80,14 100,8 120,10 140,4 160,6" fill="none" stroke="#C98A1E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      </div>
+      <div class="card panel" style="margin-top:14px">
+        <div class="panel-h"><b>Today · 8 blocks</b><span class="mono" style="font-size:12px;color:var(--muted)">3 / 8 completed</span></div>
+        <div class="blocks">
+          <div class="blk done"><span class="h">09:00</span><span>Deep work: jobs scraper</span></div>
+          <div class="blk done"><span class="h">10:00</span><span>Code review</span></div>
+          <div class="blk done"><span class="h">11:00</span><span>Client call, Atlas</span></div>
+          <div class="blk prog"><span class="h">12:00 · now</span><span>Ship billing sheet</span></div>
+          <div class="blk plan"><span class="h">13:00</span><span>Lunch + walk</span></div>
+          <div class="blk plan"><span class="h">14:00</span><span>Rust course, ch. 4</span></div>
+          <div class="blk plan"><span class="h">15:00</span><span>Apply: 3 offers</span></div>
+          <div class="blk empty">+ Add</div>
+        </div>
+        <div class="bar"><i></i></div>
+      </div>
+      <div class="two">
+        <div class="card panel">
+          <div class="panel-h"><b>Latest offers · Morocco</b><span style="font-size:12px;color:var(--sky-text);font-weight:500">View all →</span></div>
+          <div class="job"><div class="logo-sq" style="background:#5B9DE61F;color:var(--sky-text)">in</div><div><div class="t">Senior Frontend Engineer</div><div class="m">Casablanca · Hybrid · 2h ago</div></div><span class="badge b-new">New</span></div>
+          <div class="job"><div class="logo-sq" style="background:#E9B03F2E;color:var(--amber-text)">id</div><div><div class="t">React / Next.js Developer</div><div class="m">Rabat · Remote · 1d ago</div></div><span class="badge b-applied">Applied</span></div>
+          <div class="job" style="margin-bottom:0"><div class="logo-sq" style="background:#A67BE51F;color:var(--violet-text)">in</div><div><div class="t">Design Systems Engineer</div><div class="m">Remote (MA) · 3d ago</div></div><span class="badge b-int">Interviewing</span></div>
+        </div>
+        <div class="card panel">
+          <div class="panel-h"><b>Tech radar</b><div class="tabs" style="padding:3px"><span class="on" style="padding:4px 10px;font-size:12px">Today</span><span style="padding:4px 10px;font-size:12px">Week</span></div></div>
+          <div class="news"><span class="star">★ 2.4k</span><div><b>vercel/next-forge</b><p>Production-grade Turborepo template for Next.js apps</p><div class="row" style="gap:6px;margin-top:8px"><span class="tag">#nextjs</span><span class="tag">#monorepo</span></div></div></div>
+          <div class="news"><span class="star">★ 1.1k</span><div><b>shadcn-ui/ui</b><p>New registry blocks for dashboards and charts</p><div class="row" style="gap:6px;margin-top:8px"><span class="tag">#react</span><span class="tag">#ui</span></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 06 DARK + 07 PRINCIPLES -->
+<div class="grid" style="grid-template-columns:1fr 1.1fr;gap:40px">
+  <div class="sec">
+    <div class="sec-head"><div><div class="eyebrow">Theme · secondary</div><h2>Dark mode · Ink</h2></div><span class="n">06</span></div>
+    <div class="darkbox dark">
+      <div class="row" style="justify-content:space-between"><div><div style="font:600 18px Poppins">Projects</div><div style="font-size:12px;color:var(--muted)">3 active · 9,800 MAD / mo</div></div><span class="btn btn-primary btn-sm">+ New project</span></div>
+      <div class="grid" style="grid-template-columns:1fr 1fr;gap:12px;margin-top:16px">
+        <div class="card" style="padding:16px"><div class="row" style="justify-content:space-between"><b style="font-size:14px;font-weight:600">Atlas CRM</b><span class="badge b-neutral" style="height:22px">Client</span></div><div style="font-size:12px;margin-top:4px;color:var(--muted)">Build · 35,000 MAD</div><div class="mono" style="font-size:18px;margin-top:10px">4,500 <span style="font-size:11px;color:var(--muted)">MAD/mo</span></div></div>
+        <div class="card" style="padding:16px"><div class="row" style="justify-content:space-between"><b style="font-size:14px;font-weight:600">MasterMe</b><span class="badge b-applied" style="height:22px">SaaS</span></div><div style="font-size:12px;margin-top:4px;color:var(--muted)">Personal ecosystem</div><div class="mono" style="font-size:18px;margin-top:10px">5,300 <span style="font-size:11px;color:var(--muted)">MAD/mo</span></div></div>
+      </div>
+      <div class="field" style="margin-top:14px"><label>Search projects</label><div class="input focus">atlas</div></div>
+    </div>
+  </div>
+  <div class="sec">
+    <div class="sec-head"><div><div class="eyebrow">Voice</div><h2>Principles</h2></div><span class="n">07</span></div>
+    <div class="grid" style="grid-template-columns:1fr 1fr;gap:14px">
+      <div class="card principle"><div class="i" style="background:#E9B03F2E;color:var(--amber-text)">01</div><b>Amber means action</b><p>Amber is only for the primary action, the current state or focus. Use at most one amber button per view.</p></div>
+      <div class="card principle"><div class="i" style="background:#5B9DE61F;color:var(--sky-text)">02</div><b>Sky is information</b><p>Links, new items and outbound sources use sky. It never marks a primary action.</p></div>
+      <div class="card principle"><div class="i" style="background:#7E9A6224;color:var(--olive-text)">03</div><b>Numbers in mono</b><p>Money, times, counts and stars use JetBrains Mono so columns line up.</p></div>
+      <div class="card principle"><div class="i" style="background:var(--sunken);color:var(--stone-text)">04</div><b>Paper on chalk</b><p>White cards sit on a warm chalk page with 1px borders and soft shadows. Tinted text shades keep colour readable.</p></div>
+    </div>
+  </div>
+</div>
+
+<div class="foot"><span>MasterMe · Amber Lens v2.0 · Light</span><span>Poppins + JetBrains Mono · 4px grid · radius 10 base</span><span>aymenjdily.com</span></div>
+</div>
+</body>
+</html>

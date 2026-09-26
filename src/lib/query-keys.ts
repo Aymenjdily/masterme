@@ -1,0 +1,15 @@
+export const queryKeys = {
+  portfolioLinks: ["portfolio-links"] as const,
+  socialApps: ["social-apps"] as const,
+  timeline: (date: string) => ["timeline", date] as const,
+  jobOffers: (status?: string) => ["job-offers", status ?? "all"] as const,
+  jobApplications: ["job-applications"] as const,
+  recruiterContacts: ["recruiter-contacts"] as const,
+  userSkills: ["user-skills"] as const,
+  projects: ["projects"] as const,
+  techNews: ["tech-news"] as const,
+  monthlyCosts: ["monthly-costs"] as const,
+  appsSummary: ["apps-services-summary"] as const,
+  learningPaths: ["learning-paths"] as const,
+  notificationsSummary: ["notifications-summary"] as const,
+};

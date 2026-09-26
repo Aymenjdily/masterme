@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MasterMe Paste Anything</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F6F4EF;--surface:#FFFFFF;--sunken:#EFECE5;--line:#1B1E2914;--line-strong:#1B1E2926;
+  --fg:#1B1E29;--muted:#5E6578;--ink:#0E0F14;
+  --amber:#E9B03F;--amber-600:#C98A1E;--amber-text:#9A6710;
+  --sky:#5B9DE6;--sky-text:#2F6FB8;--olive:#7E9A62;--olive-text:#4E6B35;--clay-text:#B8432F;--violet-text:#7A4FC0;--stone-text:#6B5A3E;
+  --shadow:0 1px 2px #1B1E290A,0 4px 16px #1B1E290D;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:1600px;background:#E9E6DF;color:var(--fg);font-family:Poppins,sans-serif;-webkit-font-smoothing:antialiased}
+.mono{font-family:"JetBrains Mono",monospace}
+svg.i{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.board{padding:48px 80px 64px}
+.eyebrow{font:500 11px "JetBrains Mono";letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.board-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:24px}
+.board-head h1{font:600 28px Poppins;letter-spacing:-.02em;margin-top:6px}
+.board-head p{font:12px "JetBrains Mono";color:var(--muted);text-align:right;line-height:1.7}
+.frame{border-radius:18px;overflow:hidden;box-shadow:0 30px 80px #1B1E2926;border:1px solid var(--line-strong)}
+.chrome{height:36px;background:#FBFAF7;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;padding:0 14px}
+.chrome i{width:11px;height:11px;border-radius:50%;background:#D8D4CB;display:block}
+.chrome .url{margin-left:18px;height:22px;flex:0 0 360px;border-radius:6px;background:var(--sunken);font:11px "JetBrains Mono";color:var(--muted);display:flex;align-items:center;padding:0 10px}
+
+/* app shell */
+.app{position:relative;height:900px;background:var(--bg);display:grid;grid-template-columns:300px 1fr;gap:16px;padding:16px}
+.side{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:20px 16px}
+.brand{display:flex;align-items:center;gap:10px;padding:0 0 22px}
+.brand img{width:40px;height:40px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 2px #fff,0 0 0 4px var(--amber)}
+.brand b{font-size:20px;font-weight:600}
+.grp{font:500 10px "JetBrains Mono";letter-spacing:.12em;text-transform:uppercase;color:#5E6578CC;padding:18px 0 6px}
+.grp:first-of-type{padding-top:0}
+.nav a{position:relative;display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:10px;font-size:13.5px;font-weight:500;color:var(--muted)}
+.nav a.on{background:var(--bg);color:var(--fg)}
+.nav a.on::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:0 3px 3px 0;background:var(--amber)}
+.nav a.on svg{color:var(--amber-600)}
+.main{display:flex;flex-direction:column;gap:16px;min-width:0}
+.hdr{height:56px;flex-shrink:0;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);display:flex;align-items:center;gap:12px;padding:0 16px}
+.hdr .sep{width:1px;height:20px;background:var(--line-strong)}
+.crumb{flex:1;font-size:14px;color:var(--muted)}
+.crumb b{color:var(--fg);font-weight:500}
+.hdr .date{font:12px "JetBrains Mono";color:var(--muted);padding-right:8px}
+.ib{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.user{display:flex;align-items:center;gap:8px;padding:4px 8px 4px 4px;border-radius:10px;font-size:14px;font-weight:500}
+.user img{width:32px;height:32px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 2px #fff,0 0 0 4px var(--amber)}
+.paste-btn{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 6px 0 12px;border-radius:10px;border:1px solid var(--line-strong);background:#fff;font:500 13px Poppins;box-shadow:0 1px 2px #1B1E290D}
+.paste-btn svg{width:15px;height:15px;color:var(--amber-600)}
+.paste-btn.hl{border-color:var(--amber-600);box-shadow:0 0 0 4px #E9B03F33}
+kbd{font:500 10.5px "JetBrains Mono";color:var(--muted);background:var(--sunken);border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:1px 6px}
+
+/* page behind */
+.content{padding:8px 8px 0}
+.ghost-h{height:26px;width:340px;border-radius:8px;background:#1B1E2912}
+.ghost-s{height:14px;width:420px;border-radius:6px;background:#1B1E290C;margin-top:10px}
+.ghost-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:24px}
+.ghost-grid div,.ghost-cols div{background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow)}
+.ghost-grid div{height:108px}
+.ghost-cols{display:grid;grid-template-columns:1.55fr 1fr;gap:16px;margin-top:16px}
+.ghost-cols div{height:250px}
+.overlay{position:absolute;inset:0;background:#1B1E2966;backdrop-filter:blur(2px);display:flex;align-items:flex-start;justify-content:center;padding-top:96px}
+
+/* dialog */
+.dlg{width:600px;background:#fff;border:1px solid var(--line-strong);border-radius:20px;box-shadow:0 24px 64px #1B1E2940;overflow:hidden}
+.dlg-h{display:flex;align-items:flex-start;gap:12px;padding:20px 22px 0}
+.dlg-h .spark{width:36px;height:36px;border-radius:10px;background:#E9B03F26;color:var(--amber-600);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.dlg-h h4{font-size:17px;font-weight:600;line-height:1.2}
+.dlg-h p{font-size:12.5px;color:var(--muted);margin-top:2px}
+.dlg-h .x{margin-left:auto;color:var(--muted);width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:8px}
+.dlg-b{padding:16px 22px 0}
+.dlg-f{display:flex;align-items:center;gap:8px;padding:14px 22px;margin-top:18px;border-top:1px solid var(--line);background:#FBFAF7}
+.dlg-f .meta{white-space:nowrap;font:11px "JetBrains Mono";color:var(--muted);display:flex;align-items:center;gap:6px;margin-right:auto}
+.dlg-f .meta i{width:6px;height:6px;border-radius:50%;background:var(--olive);display:block}
+.btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:10px;font:500 13px Poppins;border:1px solid var(--line-strong);background:#fff;box-shadow:0 1px 2px #1B1E290D;white-space:nowrap}
+.btn svg{width:14px;height:14px}
+.btn.primary{background:var(--amber);border-color:transparent;color:var(--ink);box-shadow:0 1px 2px #9A671033}
+.btn.ghost{border-color:transparent;box-shadow:none;background:transparent;color:var(--muted)}
+.btn.sm{height:30px;padding:0 10px;font-size:12px;border-radius:8px}
+
+/* pasted source */
+.source{border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:10px 12px;font-size:12.5px;color:var(--muted);line-height:1.55;display:flex;gap:10px}
+.source svg{width:14px;height:14px;margin-top:2px;color:var(--muted)}
+.source span{flex:1;min-width:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.source mark{background:#E9B03F33;color:var(--fg);border-radius:3px;padding:0 2px}
+.source .edit{flex:none;display:block;margin-left:auto;font-size:12px;color:var(--sky-text);white-space:nowrap;font-weight:500}
+
+/* detection */
+.detect{display:flex;align-items:center;gap:12px;margin-top:14px;padding:12px 14px;border-radius:14px;border:1px solid var(--line)}
+.detect .ic{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.detect .k{font-size:11.5px;color:var(--muted)}
+.detect .t{font-size:14.5px;font-weight:600;margin-top:1px}
+.conf{margin-left:auto;text-align:right}
+.conf .pct{font:500 13px "JetBrains Mono"}
+.conf .bar{width:110px;height:5px;border-radius:99px;background:var(--sunken);margin-top:5px;overflow:hidden}
+.conf .bar b{display:block;height:100%;border-radius:99px}
+.conf .lbl{font-size:11px;margin-top:4px}
+.change{font-size:12px;color:var(--sky-text);font-weight:500;margin-left:10px}
+.t-sky{background:#5B9DE61F;color:var(--sky-text)}
+.t-amber{background:#E9B03F2E;color:var(--amber-text)}
+.t-olive{background:#7E9A6224;color:var(--olive-text)}
+.t-violet{background:#A67BE51F;color:var(--violet-text)}
+.t-stone{background:#D9CBB566;color:var(--stone-text)}
+.t-clay{background:#E0654F1A;color:var(--clay-text)}
+
+/* fields */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px;margin-top:16px}
+.f label{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:500;margin-bottom:6px}
+.f label .ai{width:6px;height:6px;border-radius:50%;background:var(--amber);display:block}
+.f label em{font-style:normal;color:var(--muted);font-weight:400;margin-left:auto;font-size:11px}
+.input{height:38px;border-radius:10px;border:1px solid var(--line-strong);padding:0 12px;display:flex;align-items:center;font-size:13.5px;color:var(--muted);background:#fff;gap:8px}
+.input .v{color:var(--fg)}
+.input.ai{background:#FFFCF4;border-color:#E9B03F66}
+.input.focus{border-color:var(--amber-600);box-shadow:0 0 0 4px #E9B03F33;background:#fff}
+.input.sel{justify-content:space-between}
+.input.sel svg{width:14px;height:14px}
+.area{height:62px;align-items:flex-start;padding-top:9px;line-height:1.5}
+.full{grid-column:1/-1}
+.legend{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);margin-top:12px}
+.legend i{width:6px;height:6px;border-radius:50%;background:var(--amber);display:block}
+
+/* also create */
+.also{display:flex;align-items:center;gap:12px;margin-top:14px;padding:11px 14px;border-radius:12px;background:#5B9DE60F;border:1px solid #5B9DE640;font-size:13px}
+.cb{width:18px;height:18px;border-radius:5px;background:var(--amber);display:flex;align-items:center;justify-content:center;color:var(--ink);flex-shrink:0}
+.cb svg{width:12px;height:12px;stroke-width:3}
+.cb.off{background:#fff;border:1.5px solid var(--line-strong)}
+.also b{font-weight:500}
+.also span{color:var(--muted)}
+.also .pct{margin-left:auto;font:500 11.5px "JetBrains Mono";color:var(--sky-text)}
+
+/* states */
+.states{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:40px;align-items:start}
+.st-h{margin-bottom:12px}
+.st-h b{display:block;font-size:15px;font-weight:600;margin-top:4px}
+.st-h span{font-weight:400;font-size:12px;color:var(--muted)}
+.states .dlg{width:100%}
+.drop{margin-top:4px;border:1.5px dashed #C98A1E80;background:#FFFCF4;border-radius:14px;height:150px;padding:14px;font-size:13px;color:var(--muted);line-height:1.6;position:relative}
+.drop .caret{display:inline-block;width:1.5px;height:16px;background:var(--fg);vertical-align:-3px}
+.drop .kb{position:absolute;bottom:12px;right:14px;display:flex;align-items:center;gap:6px;font-size:11.5px}
+.knows{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.chip{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:99px;border:1px solid var(--line);background:#fff;font-size:12px;color:var(--muted)}
+.chip svg{width:13px;height:13px}
+.steps{margin-top:6px;display:flex;flex-direction:column;gap:10px}
+.step{display:flex;align-items:center;gap:10px;font-size:13px}
+.step .d{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.step .d svg{width:12px;height:12px;stroke-width:2.6}
+.step.done .d{background:#7E9A6226;color:var(--olive-text)}
+.step.run .d{border:2px solid #E9B03F55;border-top-color:var(--amber-600)}
+.step.wait .d{border:1.5px solid var(--line-strong)}
+.step.wait{color:var(--muted)}
+.step .ms{margin-left:auto;font:11px "JetBrains Mono";color:var(--muted)}
+.skel{height:38px;border-radius:10px;background:linear-gradient(90deg,var(--sunken),#F6F4EF,var(--sunken))}
+.pick2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.opt{border:1px solid var(--line-strong);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px;background:#fff}
+.opt.on{border-color:var(--amber-600);box-shadow:0 0 0 3px #E9B03F2E;background:#FFFCF4}
+.opt .top{display:flex;align-items:center;gap:10px}
+.opt .ic{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center}
+.opt .ic svg{width:15px;height:15px}
+.opt b{font-size:13.5px;font-weight:600}
+.opt .pct{margin-left:auto;font:500 12px "JetBrains Mono"}
+.opt .bar{height:4px;border-radius:99px;background:var(--sunken);overflow:hidden}
+.opt .bar i{display:block;height:100%;border-radius:99px;background:var(--amber)}
+.opt p{font-size:11.5px;color:var(--muted);line-height:1.45}
+.q{font-size:13px;font-weight:500;margin-top:14px}
+.q span{font-weight:400;color:var(--muted)}
+.pick5{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.tile{border:1px solid var(--line-strong);border-radius:12px;padding:10px;display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:500;background:#fff}
+.tile .ic{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tile .ic svg{width:14px;height:14px}
+.warn{display:flex;gap:10px;padding:11px 13px;border-radius:12px;background:#E9B03F14;border:1px solid #E9B03F55;font-size:12.5px;line-height:1.5;margin-top:12px}
+.warn svg{width:16px;height:16px;color:var(--amber-600);margin-top:1px}
+.err{display:flex;gap:10px;padding:11px 13px;border-radius:12px;background:#E0654F0F;border:1px solid #E0654F40;font-size:12.5px;line-height:1.5;color:var(--clay-text)}
+.err svg{width:16px;height:16px;margin-top:1px}
+.pathopt{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.prow{display:flex;align-items:center;gap:10px;height:38px;padding:0 12px;border-radius:10px;border:1px solid var(--line-strong);font-size:13px}
+.prow.on{border-color:var(--amber-600);background:#FFFCF4}
+.prow .rd{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--line-strong)}
+.prow.on .rd{border:5px solid var(--amber-600)}
+.prow .pct{margin-left:auto;font:500 11.5px "JetBrains Mono";color:var(--muted)}
+.prow.on .pct{color:var(--amber-text)}
+.toast{white-space:nowrap;display:flex;align-items:center;gap:12px;background:var(--fg);color:#fff;border-radius:14px;padding:12px 14px;box-shadow:0 12px 32px #1B1E2940;font-size:13px}
+.toast .ok{width:26px;height:26px;border-radius:50%;background:#7E9A6240;color:#BFD6A6;display:flex;align-items:center;justify-content:center}
+.toast .ok svg{width:14px;height:14px;stroke-width:2.6}
+.toast span{color:#FFFFFFB3}
+.toast a{margin-left:auto;color:#F3C969;font-weight:500;white-space:nowrap}
+.toast .u{color:#FFFFFFB3;font-weight:500;padding-left:12px;border-left:1px solid #FFFFFF26}
+.specs{margin-top:40px;display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.spec{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;font-size:12.5px;color:var(--muted);line-height:1.55}
+.spec b{display:block;color:var(--fg);font-size:13px;font-weight:600;margin-bottom:4px}
+.gates{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.gates div{display:flex;align-items:center;gap:8px}
+.gates i{font:500 10.5px "JetBrains Mono";font-style:normal;padding:1px 7px;border-radius:99px;min-width:62px;text-align:center}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/></symbol>
+  <symbol id="book" viewBox="0 0 24 24"><path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z"/><path d="M4 19V5"/></symbol>
+  <symbol id="dash" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></symbol>
+  <symbol id="clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="wallet" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M16 13h2M3 10h18"/></symbol>
+  <symbol id="bag" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2"/></symbol>
+  <symbol id="folder" viewBox="0 0 24 24"><path d="M3 6a1 1 0 011-1h5l2 2h9a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1z"/></symbol>
+  <symbol id="news" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></symbol>
+  <symbol id="gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9L7 7M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></symbol>
+  <symbol id="bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9M10 21h4"/></symbol>
+  <symbol id="panel" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></symbol>
+  <symbol id="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+  <symbol id="check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></symbol>
+  <symbol id="route" viewBox="0 0 24 24"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H16a3.5 3.5 0 000-7H8a3.5 3.5 0 010-7h7.5"/></symbol>
+  <symbol id="radar" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><path d="M12 12l6-6"/></symbol>
+  <symbol id="clip" viewBox="0 0 24 24"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3"/></symbol>
+  <symbol id="spark" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></symbol>
+  <symbol id="info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+  <symbol id="quote" viewBox="0 0 24 24"><path d="M7 7h4v4c0 3-2 5-4 6M15 7h4v4c0 3-2 5-4 6"/></symbol>
+  <symbol id="alert" viewBox="0 0 24 24"><path d="M12 3l9 16H3zM12 10v4M12 17h.01"/></symbol>
+  <symbol id="link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1"/></symbol>
+</svg>
+
+<div class="board">
+  <div class="board-head">
+    <div><div class="eyebrow">MasterMe · AI · 01</div><h1>Paste anything</h1></div>
+    <p>Paste a message, job post or link → AI decides where it goes<br>and fills the form. You review, then save.<br>Decisions: gpt-4.1-mini (Jev later) · Fields: gpt-5.4-mini</p>
+  </div>
+
+  <!-- MAIN FRAME -->
+  <div class="frame">
+    <div class="chrome"><i></i><i></i><i></i><div class="url">localhost:3000/dashboard</div></div>
+    <div class="app">
+      <aside class="side">
+        <div class="brand"><img src="../public/images/avatar.png" alt=""><b>MasterMe</b></div>
+        <nav class="nav">
+          <div class="grp">Dashboards</div>
+          <a class="on"><svg class="i"><use href="#dash"/></svg>Dashboard</a>
+          <div class="grp">Life management</div>
+          <a><svg class="i"><use href="#globe"/></svg>Portfolio</a>
+          <a><svg class="i"><use href="#book"/></svg>Learning</a>
+          <a><svg class="i"><use href="#clock"/></svg>Timeline</a>
+          <a><svg class="i"><use href="#wallet"/></svg>Monthly Cost</a>
+          <div class="grp">Career &amp; business</div>
+          <a><svg class="i"><use href="#bag"/></svg>Jobs</a>
+          <a><svg class="i"><use href="#folder"/></svg>Projects</a>
+          <a><svg class="i"><use href="#news"/></svg>Tech News</a>
+          <div class="grp">Account</div>
+          <a><svg class="i"><use href="#gear"/></svg>Settings</a>
+        </nav>
+      </aside>
+      <div class="main">
+        <div class="hdr">
+          <span class="ib" style="width:32px;height:32px"><svg class="i"><use href="#panel"/></svg></span>
+          <span class="sep"></span>
+          <div class="crumb">MasterMe <span style="opacity:.6">/</span> <b>Dashboard</b></div>
+          <span class="paste-btn hl"><svg class="i"><use href="#spark"/></svg>Paste anything<kbd>Ctrl ⇧ V</kbd></span>
+          <span class="date">Wed, Sep 23</span>
+          <span class="ib"><svg class="i"><use href="#bell"/></svg></span>
+          <span class="user"><img src="../public/images/avatar.png" alt="">Aymen<svg class="i" style="width:14px;height:14px;color:var(--muted)"><use href="#chev"/></svg></span>
+        </div>
+        <div class="content">
+          <div class="ghost-h"></div><div class="ghost-s"></div>
+          <div class="ghost-grid"><div></div><div></div><div></div><div></div></div>
+          <div class="ghost-cols"><div></div><div></div></div>
+        </div>
+      </div>
+
+      <div class="overlay">
+        <div class="dlg">
+          <div class="dlg-h">
+            <span class="spark"><svg class="i"><use href="#spark"/></svg></span>
+            <div><h4>Paste anything</h4><p>Review what the AI filled in, then save.</p></div>
+            <span class="x"><svg class="i"><use href="#x"/></svg></span>
+          </div>
+          <div class="dlg-b">
+            <div class="source"><svg class="i"><use href="#quote"/></svg><span>Bonjour Aymen, je suis <mark>Karim Benali</mark>, Talent Acquisition chez <mark>OCP Group</mark>. Nous recrutons un <mark>Full-stack Engineer (React / Node)</mark> à Casablanca. Seriez-vous disponible cette semaine ? <mark>karim.benali@ocpgroup.ma</mark> · <mark>+212 6 61 23 45 67</mark></span><span class="edit">Edit text</span></div>
+
+            <div class="detect">
+              <span class="ic t-sky"><svg class="i"><use href="#user"/></svg></span>
+              <div><div class="k">Looks like a</div><div class="t">Recruiter contact <span class="change">Change</span></div></div>
+              <div class="conf">
+                <div class="pct" style="color:var(--olive-text)">96%</div>
+                <div class="bar"><b style="width:96%;background:var(--olive)"></b></div>
+                <div class="lbl" style="color:var(--olive-text)">Sure</div>
+              </div>
+            </div>
+
+            <div class="grid2">
+              <div class="f"><label><i class="ai"></i>Name</label><div class="input ai"><span class="v">Karim Benali</span></div></div>
+              <div class="f"><label><i class="ai"></i>Company</label><div class="input ai"><span class="v">OCP Group</span></div></div>
+              <div class="f"><label><i class="ai"></i>Email</label><div class="input ai focus"><span class="v">karim.benali@ocpgroup.ma</span></div></div>
+              <div class="f"><label><i class="ai"></i>Phone</label><div class="input ai"><span class="v">+212 6 61 23 45 67</span></div></div>
+              <div class="f"><label>LinkedIn URL <em>not found</em></label><div class="input">https://linkedin.com/in/…</div></div>
+              <div class="f"><label><i class="ai"></i>Next follow-up</label><div class="input ai sel"><span class="v">Fri, Sep 25</span><svg class="i"><use href="#chev"/></svg></div></div>
+              <div class="f full"><label><i class="ai"></i>Notes</label><div class="input ai area"><span class="v">Reached out about a Full-stack Engineer (React / Node) role in Casablanca. Asked to talk this week.</span></div></div>
+            </div>
+
+            <div class="also">
+              <span class="cb"><svg class="i"><use href="#check"/></svg></span>
+              <div><b>Also add an application</b> <span>· Full-stack Engineer at OCP Group</span></div>
+              <span class="pct">yes · 88%</span>
+            </div>
+
+            <div class="legend"><i></i>Filled by AI from your text. Nothing is saved until you click Save.</div>
+          </div>
+          <div class="dlg-f">
+            <span class="meta"><i></i>2 AI calls · 2.3s</span>
+            <span class="btn ghost">Cancel</span>
+            <span class="btn primary"><svg class="i"><use href="#check"/></svg>Save recruiter + application</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATES -->
+  <div class="states">
+    <div>
+      <div class="st-h"><div class="eyebrow">State 1</div><b>Empty <span>· opened from the header or Ctrl ⇧ V</span></b></div>
+      <div class="dlg">
+        <div class="dlg-h">
+          <span class="spark"><svg class="i"><use href="#spark"/></svg></span>
+          <div><h4>Paste anything</h4><p>A message, job post, course or article link.</p></div>
+          <span class="x"><svg class="i"><use href="#x"/></svg></span>
+        </div>
+        <div class="dlg-b">
+          <div class="drop"><span class="caret"></span> Paste here… e.g. a recruiter's LinkedIn message, a job description, a YouTube course link.
+            <div class="kb"><kbd>Ctrl V</kbd> to paste · <kbd>Enter</kbd> to read</div>
+          </div>
+          <div class="knows">
+            <span class="chip"><svg class="i" style="color:var(--sky-text)"><use href="#user"/></svg>Recruiter</span>
+            <span class="chip"><svg class="i" style="color:var(--amber-text)"><use href="#bag"/></svg>Application</span>
+            <span class="chip"><svg class="i" style="color:var(--olive-text)"><use href="#route"/></svg>Learning step</span>
+            <span class="chip"><svg class="i" style="color:var(--violet-text)"><use href="#radar"/></svg>Radar item</span>
+            <span class="chip"><svg class="i" style="color:var(--stone-text)"><use href="#link"/></svg>Portfolio link</span>
+          </div>
+        </div>
+        <div class="dlg-f"><span class="meta">Max 4,000 characters</span><span class="btn ghost">Cancel</span><span class="btn primary" style="opacity:.5"><svg class="i"><use href="#spark"/></svg>Read it</span></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="st-h"><div class="eyebrow">State 2</div><b>Reading <span>· decide first, then fill fields</span></b></div>
+      <div class="dlg">
+        <div class="dlg-h">
+          <span class="spark"><svg class="i"><use href="#spark"/></svg></span>
+          <div><h4>Paste anything</h4><p>Reading your text…</p></div>
+          <span class="x"><svg class="i"><use href="#x"/></svg></span>
+        </div>
+        <div class="dlg-b">
+          <div class="source"><svg class="i"><use href="#quote"/></svg><span>Bonjour Aymen, je suis Karim Benali, Talent Acquisition chez OCP Group. Nous recrutons un Full-stack Engineer…</span></div>
+          <div class="steps" style="margin-top:16px">
+            <div class="step done"><span class="d"><svg class="i"><use href="#check"/></svg></span>Decided what it is · <b style="font-weight:500">Recruiter contact</b><span class="ms">0.9s</span></div>
+            <div class="step run"><span class="d"></span>Filling the fields<span class="ms">…</span></div>
+            <div class="step wait"><span class="d"></span>Ready to review</div>
+          </div>
+          <div class="grid2">
+            <div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div>
+          </div>
+        </div>
+        <div class="dlg-f"><span class="meta">Cancel stops the request</span><span class="btn ghost">Cancel</span><span class="btn primary" style="opacity:.5">Save</span></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="st-h"><div class="eyebrow">State 3</div><b>Not sure <span>· 50–90%, you pick between the top two</span></b></div>
+      <div class="dlg">
+        <div class="dlg-h">
+          <span class="spark"><svg class="i"><use href="#spark"/></svg></span>
+          <div><h4>Paste anything</h4><p>This could be two things.</p></div>
+          <span class="x"><svg class="i"><use href="#x"/></svg></span>
+        </div>
+        <div class="dlg-b">
+          <div class="source"><svg class="i"><use href="#quote"/></svg><span>Senior React Developer — Capgemini Casablanca. Hybrid, 5+ years, TypeScript, Next.js. Apply: careers.capgemini.com/…</span></div>
+          <div class="pick2">
+            <div class="opt on">
+              <div class="top"><span class="ic t-amber"><svg class="i"><use href="#bag"/></svg></span><b>Application</b><span class="pct">71%</span></div>
+              <div class="bar"><i style="width:71%"></i></div>
+              <p>Track it as a job you're applying to.</p>
+            </div>
+            <div class="opt">
+              <div class="top"><span class="ic t-violet"><svg class="i"><use href="#radar"/></svg></span><b>Radar item</b><span class="pct">24%</span></div>
+              <div class="bar"><i style="width:24%;background:#A67BE5"></i></div>
+              <p>Save it to read later in Tech News.</p>
+            </div>
+          </div>
+          <div class="warn"><svg class="i"><use href="#info"/></svg><span>The AI is <b>71% sure</b>. Pick one and the fields fill in for it.</span></div>
+        </div>
+        <div class="dlg-f"><span class="meta"><i style="background:var(--amber)"></i>gpt-4.1-mini · 1.1s</span><span class="btn ghost">Cancel</span><span class="btn primary">Continue as Application</span></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="st-h"><div class="eyebrow">State 4</div><b>Learning step <span>· AI also picks the path</span></b></div>
+      <div class="dlg">
+        <div class="dlg-h">
+          <span class="spark"><svg class="i"><use href="#spark"/></svg></span>
+          <div><h4>Paste anything</h4><p>Review what the AI filled in, then save.</p></div>
+          <span class="x"><svg class="i"><use href="#x"/></svg></span>
+        </div>
+        <div class="dlg-b">
+          <div class="detect" style="margin-top:0">
+            <span class="ic t-olive"><svg class="i"><use href="#route"/></svg></span>
+            <div><div class="k">Looks like a</div><div class="t">Learning step <span class="change">Change</span></div></div>
+            <div class="conf"><div class="pct" style="color:var(--olive-text)">98%</div><div class="bar"><b style="width:98%;background:var(--olive)"></b></div><div class="lbl" style="color:var(--olive-text)">Sure</div></div>
+          </div>
+          <div class="f" style="margin-top:14px"><label><i class="ai"></i>Title</label><div class="input ai"><span class="v">Docker Compose for production</span></div></div>
+          <div class="f" style="margin-top:12px"><label><i class="ai"></i>Add to path</label>
+            <div class="pathopt">
+              <div class="prow on"><span class="rd"></span>DevOps for full-stack devs<span class="pct">82%</span></div>
+              <div class="prow"><span class="rd"></span>Next.js 16 deep dive<span class="pct">11%</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="dlg-f"><span class="meta"><i></i>2 decisions · 1.3s</span><span class="btn ghost">Cancel</span><span class="btn primary"><svg class="i"><use href="#check"/></svg>Add step</span></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="st-h"><div class="eyebrow">State 5</div><b>Don't know <span>· under 50%, the AI doesn't guess</span></b></div>
+      <div class="dlg">
+        <div class="dlg-h">
+          <span class="spark"><svg class="i"><use href="#spark"/></svg></span>
+          <div><h4>Paste anything</h4><p>What should this become?</p></div>
+          <span class="x"><svg class="i"><use href="#x"/></svg></span>
+        </div>
+        <div class="dlg-b">
+          <div class="source"><svg class="i"><use href="#quote"/></svg><span>ok see you tomorrow at 10 then 👍</span></div>
+          <div class="q">I couldn't tell what this is. <span>Pick one, or cancel.</span></div>
+          <div class="pick5">
+            <div class="tile"><span class="ic t-sky"><svg class="i"><use href="#user"/></svg></span>Recruiter</div>
+            <div class="tile"><span class="ic t-amber"><svg class="i"><use href="#bag"/></svg></span>Application</div>
+            <div class="tile"><span class="ic t-olive"><svg class="i"><use href="#route"/></svg></span>Learning step</div>
+            <div class="tile"><span class="ic t-violet"><svg class="i"><use href="#radar"/></svg></span>Radar item</div>
+            <div class="tile"><span class="ic t-stone"><svg class="i"><use href="#link"/></svg></span>Portfolio link</div>
+          </div>
+        </div>
+        <div class="dlg-f"><span class="meta"><i style="background:var(--clay-text)"></i>best guess 34%</span><span class="btn ghost">Cancel</span></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="st-h"><div class="eyebrow">State 6 · 7</div><b>Saved and error <span>· toast, and a failed request</span></b></div>
+      <div class="toast"><span class="ok"><svg class="i"><use href="#check"/></svg></span><div style="white-space:nowrap"><b style="font-weight:500">Karim Benali added</b> <span>+ 1 application</span></div><a>Open in Jobs →</a><span class="u">Undo</span></div>
+      <div class="dlg" style="margin-top:16px">
+        <div class="dlg-h">
+          <span class="spark"><svg class="i"><use href="#spark"/></svg></span>
+          <div><h4>Paste anything</h4><p>Something went wrong.</p></div>
+          <span class="x"><svg class="i"><use href="#x"/></svg></span>
+        </div>
+        <div class="dlg-b">
+          <div class="err"><svg class="i"><use href="#alert"/></svg><span>The AI didn't answer in time. Your text is still here. Try again, or fill the form yourself.</span></div>
+        </div>
+        <div class="dlg-f"><span class="btn ghost" style="margin-right:auto;padding-left:0">Fill it myself</span><span class="btn ghost">Cancel</span><span class="btn primary">Try again</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SPECS -->
+  <div class="specs">
+    <div class="spec"><b>Where it opens</b>"Paste anything" button in the header on every page, or <kbd>Ctrl ⇧ V</kbd> anywhere. Later it's also inside the ⌘K bar.</div>
+    <div class="spec"><b>How it decides</b>
+      <div class="gates">
+        <div><i style="background:#7E9A6226;color:var(--olive-text)">≥ 90%</i>Type is set, you review the fields</div>
+        <div><i style="background:#E9B03F26;color:var(--amber-text)">50–90%</i>You pick between the top two</div>
+        <div><i style="background:#E0654F1A;color:var(--clay-text)">&lt; 50%</i>No guess, you choose the type</div>
+      </div>
+    </div>
+    <div class="spec"><b>What gets saved</b>Nothing until you click Save. Every field is editable, and AI-filled ones have an amber dot. Undo on the toast deletes what was just created.</div>
+    <div class="spec"><b>Privacy and log</b>Only the pasted text (and your learning path titles) is sent. Each run logs one decision and one fill row, with the type and whether you edited it, but never the text.</div>
+  </div>
+</div>
+</body>
+</html>

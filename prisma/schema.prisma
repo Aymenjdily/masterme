@@ -1,0 +1,326 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  emailVerified Boolean   @default(false)
+  image         String?
+  skills        String[]  @default([])
+  /// When the tech radar was last fetched for this user (daily job or Refresh)
+  newsFetchedAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  sessions      Session[]
+  accounts      Account[]
+
+  portfolioLinks  PortfolioLink[]
+  socialApps      SocialApp[]
+  learningPaths   LearningPath[]
+  timelines       Timeline[]
+  jobOffers       JobOffer[]
+  jobApplications JobApplication[]
+  recruiterContacts RecruiterContact[]
+  projects        Project[]
+  techNews        TechNews[]
+  monthlyCosts    MonthlyCost[]
+  aiEvents        AiEvent[]
+  infraCosts      InfraCostSnapshot[]
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  userId                String
+  accountId             String
+  providerId            String
+  accessToken           String?
+  refreshToken          String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  idToken               String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("account")
+}
+
+model Verification {
+  id         String    @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@map("verification")
+}
+
+model PortfolioLink {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  url       String
+  icon      String?
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SocialApp {
+  id        String   @id @default(cuid())
+  userId    String
+  platform  String
+  username  String
+  url       String
+  icon      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model LearningPath {
+  id          String         @id @default(cuid())
+  userId      String
+  title       String
+  description String?
+  status      String         @default("active")
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items       LearningItem[]
+}
+
+model LearningItem {
+  id             String       @id @default(cuid())
+  learningPathId String
+  title          String
+  description    String?
+  resourceUrl    String?
+  status         String       @default("not_started")
+  order          Int          @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  learningPath   LearningPath @relation(fields: [learningPathId], references: [id], onDelete: Cascade)
+}
+
+model Timeline {
+  id         String      @id @default(cuid())
+  userId     String
+  date       DateTime
+  wakeUpHour Int?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  blocks     TimeBlock[]
+
+  @@unique([userId, date])
+}
+
+model TimeBlock {
+  id          String   @id @default(cuid())
+  timelineId  String
+  hour        Int
+  title       String
+  description String?
+  status      String   @default("planned")
+  priority    String   @default("medium")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  timeline    Timeline @relation(fields: [timelineId], references: [id], onDelete: Cascade)
+
+  @@unique([timelineId, hour])
+}
+
+model JobOffer {
+  id             String           @id @default(cuid())
+  userId         String
+  title          String
+  company        String
+  location       String?
+  source         String
+  url            String
+  description    String?
+  salary         String?
+  postedDate     DateTime?
+  scrapedDate    DateTime         @default(now())
+  status         String           @default("new")
+  recruiterName  String?
+  recruiterEmail String?
+  recruiterPhone String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applications   JobApplication[]
+
+  @@unique([userId, url])
+}
+
+model JobApplication {
+  id              String    @id @default(cuid())
+  userId          String
+  jobOfferId      String
+  applicationDate DateTime
+  coverLetter     String?
+  resumeVersion   String?
+  status          String?
+  followUpNotes   String?
+  lastFollowUpAt  DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobOffer        JobOffer  @relation(fields: [jobOfferId], references: [id], onDelete: Cascade)
+}
+
+model RecruiterContact {
+  id             String    @id @default(cuid())
+  userId         String
+  name           String
+  email          String?
+  phone          String?
+  company        String?
+  linkedinUrl    String?
+  notes          String?
+  lastContactedAt DateTime?
+  /// Set when the conversation is ended; reminders stop while it's set
+  endedAt        DateTime?
+  /// offer | application | passed | not_interested | no_reply | other
+  endReason      String?
+  endNote        String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Project {
+  id               String           @id @default(cuid())
+  userId           String
+  title            String
+  description      String?
+  type             String
+  status           String           @default("active")
+  clientName       String?
+  url              String?
+  previewImageUrl  String?
+  neonProjectId    String?
+  vercelHosting    Boolean          @default(false)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  billings         ProjectBilling[]
+  monthlyCosts     MonthlyCost[]
+  infraCosts       InfraCostSnapshot[]
+}
+
+model ProjectBilling {
+  id          String   @id @default(cuid())
+  projectId   String
+  billingType String
+  amount      Float
+  currency    String   @default("MAD")
+  description String?
+  invoiceDate DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model TechNews {
+  id            String    @id @default(cuid())
+  userId        String
+  title         String
+  url           String
+  source        String
+  description   String?
+  publishedDate DateTime?
+  tags          String[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, url])
+}
+
+model MonthlyCost {
+  id        String   @id @default(cuid())
+  userId    String
+  projectId String?
+  name      String
+  category  String   @default("app")
+  amount    Float
+  currency  String   @default("MAD")
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+}
+
+/// One row per AI call (decision or generation). Feeds the observability panel.
+model AiEvent {
+  id           String   @id @default(cuid())
+  userId       String
+  feature      String
+  kind         String // decision | generation
+  provider     String // openai | jev
+  model        String
+  latencyMs    Int
+  inputTokens  Int?
+  outputTokens Int?
+  costUsd      Float?
+  confidence   Float?
+  outcome      String   @default("suggested") // applied | suggested | accepted | edited | rejected | failed
+  summary      Json?
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, feature])
+}
+
+/// One infra cost reading per project per day (Neon usage estimate, month to date). Recalculating the same day replaces it.
+model InfraCostSnapshot {
+  id            String   @id @default(cuid())
+  userId        String
+  projectId     String
+  /// The Neon project this reading came from; relinking starts a new series.
+  neonProjectId String
+  day           DateTime @db.Date
+  neonUsd       Float
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, day])
+  @@index([userId, day])
+}

@@ -1,0 +1,7 @@
+{
+  "crons": [
+    { "path": "/api/infra/recalculate", "schedule": "0 5 * * *" },
+    { "path": "/api/jobs/scrape", "schedule": "0 6 * * *" },
+    { "path": "/api/news/fetch", "schedule": "0 7 * * *" }
+  ]
+}

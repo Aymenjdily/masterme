@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MasterMe AI Blog Writer</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+:root{
+  --bg:#F6F4EF;--surface:#FFFFFF;--sunken:#EFECE5;--line:#1B1E2914;--line-strong:#1B1E2926;
+  --fg:#1B1E29;--muted:#5E6578;--ink:#0E0F14;
+  --amber:#E9B03F;--amber-600:#C98A1E;--amber-text:#9A6710;
+  --sky:#5B9DE6;--sky-text:#2F6FB8;--olive-text:#4E6B35;--clay-text:#B8432F;--violet-text:#7A4FC0;--stone-text:#6B5A3E;
+  --shadow:0 1px 2px #1B1E290A,0 4px 16px #1B1E290D;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:1600px;background:#E9E6DF;color:var(--fg);font-family:Poppins,sans-serif;-webkit-font-smoothing:antialiased}
+.mono{font-family:"JetBrains Mono",monospace}
+svg.i{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.board{padding:48px 80px 64px}
+.eyebrow{font:500 11px "JetBrains Mono";letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.board-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:24px}
+.board-head h1{font:600 28px Poppins;letter-spacing:-.02em;margin-top:6px}
+.board-head p{font:12px "JetBrains Mono";color:var(--muted);text-align:right;line-height:1.7}
+.frame{border-radius:18px;overflow:hidden;box-shadow:0 30px 80px #1B1E2926;border:1px solid var(--line-strong)}
+.chrome{height:36px;background:#FBFAF7;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;padding:0 14px}
+.chrome i{width:11px;height:11px;border-radius:50%;background:#D8D4CB;display:block}
+.chrome .url{margin-left:18px;height:22px;flex:0 0 360px;border-radius:6px;background:var(--sunken);font:11px "JetBrains Mono";color:var(--muted);display:flex;align-items:center;padding:0 10px}
+
+/* app shell (matches the built app) */
+.app{height:900px;background:var(--bg);display:grid;grid-template-columns:300px 1fr;gap:16px;padding:16px}
+.side{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:20px 16px}
+.brand{display:flex;align-items:center;gap:10px;padding:0 0 22px}
+.brand img{width:40px;height:40px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 2px #fff,0 0 0 4px var(--amber)}
+.brand b{font-size:20px;font-weight:600}
+.grp{font:500 10px "JetBrains Mono";letter-spacing:.12em;text-transform:uppercase;color:#5E6578CC;padding:18px 0 6px}
+.grp:first-of-type{padding-top:0}
+.nav a{position:relative;display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:10px;font-size:13.5px;font-weight:500;color:var(--muted)}
+.nav a.on{background:var(--bg);color:var(--fg)}
+.nav a.on::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:0 3px 3px 0;background:var(--amber)}
+.nav a.on svg{color:var(--amber-600)}
+.main{display:flex;flex-direction:column;gap:16px;min-width:0}
+.hdr{height:56px;flex-shrink:0;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);display:flex;align-items:center;gap:12px;padding:0 16px}
+.hdr .sep{width:1px;height:20px;background:var(--line-strong)}
+.crumb{flex:1;font-size:14px;color:var(--muted)}
+.crumb b{color:var(--fg);font-weight:500}
+.hdr .date{font:12px "JetBrains Mono";color:var(--muted);padding-right:8px}
+.ib{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.user{display:flex;align-items:center;gap:8px;padding:4px 8px 4px 4px;border-radius:10px;font-size:14px;font-weight:500}
+.user img{width:32px;height:32px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 2px #fff,0 0 0 4px var(--amber)}
+
+/* page */
+.content{padding:8px 8px 0}
+.ph{display:flex;justify-content:space-between;align-items:flex-end}
+.ph h2{font:600 26px Poppins;letter-spacing:-.02em}
+.ph p{font-size:14px;color:var(--muted);margin-top:4px}
+.cols{display:grid;grid-template-columns:1.15fr 1fr;gap:16px;margin-top:22px}
+.card{background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:20px}
+.ch{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.ch .t{display:flex;align-items:center;gap:10px}
+.ch h3{font-size:15px;font-weight:600}
+.count{font:500 11px "JetBrains Mono";color:var(--muted);background:var(--sunken);border-radius:99px;padding:2px 8px}
+.btn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:8px;font:500 13px Poppins;border:1px solid var(--line-strong);background:#fff;box-shadow:0 1px 2px #1B1E290D;white-space:nowrap}
+.btn svg{width:14px;height:14px}
+.btn.primary{background:var(--amber);border-color:transparent;color:var(--ink);box-shadow:0 1px 2px #9A671033}
+.btn.lg{height:40px;padding:0 18px;font-size:14px;border-radius:10px}
+
+/* link rows */
+.row{display:flex;align-items:center;gap:14px;padding:12px;border-radius:14px;border:1px solid var(--line);background:#fff}
+.row + .row{margin-top:8px}
+.row.hover{background:var(--bg)}
+.fav{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.row .tt{font-size:14px;font-weight:500;display:flex;align-items:center;gap:8px}
+.row .u{font:12px "JetBrains Mono";color:var(--muted);margin-top:2px}
+.acts{margin-left:auto;display:flex;gap:2px;color:var(--muted)}
+.acts span{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.acts span.h{background:#fff;color:var(--fg);box-shadow:0 1px 2px #1B1E2914}
+.acts svg{width:16px;height:16px}
+.badge{display:inline-flex;align-items:center;gap:5px;height:20px;padding:0 8px;border-radius:99px;font:500 11px Poppins;border:1px solid}
+.badge::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor}
+.b-primary{color:var(--amber-text);background:#E9B03F26;border-color:#E9B03F66}
+
+/* social tiles */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{position:relative;border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px;background:#fff}
+.tile.hover{background:var(--bg)}
+.mono-t{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font:700 13px Poppins;flex-shrink:0}
+.tile b{display:block;font-size:14px;font-weight:500}
+.tile span.h{display:block;font:12px "JetBrains Mono";color:var(--muted);margin-top:1px}
+.tile .go{margin-left:auto;color:var(--muted)}
+.tile .mini{position:absolute;top:8px;right:8px;display:flex;gap:2px}
+.tile .mini span{width:28px;height:28px;border-radius:7px;background:#fff;box-shadow:0 1px 2px #1B1E2914;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.tile .mini svg{width:14px;height:14px}
+.add-tile{border:1px dashed var(--line-strong);border-radius:14px;display:flex;align-items:center;justify-content:center;gap:8px;color:var(--muted);font-size:13px;min-height:70px}
+.t-sky{background:#5B9DE61F;color:var(--sky-text)}
+.t-amber{background:#E9B03F2E;color:var(--amber-text)}
+.t-olive{background:#7E9A6224;color:var(--olive-text)}
+.t-violet{background:#A67BE51F;color:var(--violet-text)}
+.t-stone{background:#D9CBB566;color:var(--stone-text)}
+.t-ink{background:#1B1E290F;color:var(--fg)}
+
+/* states */
+.states{display:grid;grid-template-columns:460px 1fr;gap:28px;margin-top:40px;align-items:start}
+.st-h{margin-bottom:12px}
+.st-h b{display:block;font-size:15px;font-weight:600;margin-top:4px}
+.st-h span{font-weight:400;font-size:12px;color:var(--muted)}
+.sheet{background:#fff;border:1px solid var(--line-strong);border-radius:20px;box-shadow:0 12px 32px #1B1E291F;padding:24px}
+.sheet h4{font-size:18px;font-weight:600}
+.sheet .d{font-size:13px;color:var(--muted);margin-top:4px}
+.f{margin-top:18px}
+label{display:block;font-size:13px;font-weight:500;margin-bottom:8px}
+label em{font-style:normal;color:var(--muted);font-weight:400}
+.input{height:40px;border-radius:10px;border:1px solid var(--line-strong);padding:0 14px;display:flex;align-items:center;font-size:14px;color:var(--muted);background:#fff}
+.input .v{color:var(--fg)}
+.input.focus{border-color:var(--amber-600);box-shadow:0 0 0 4px #E9B03F33}
+.hint{font-size:12px;color:var(--muted);margin-top:6px}
+.sheet .foot{display:flex;justify-content:flex-end;gap:8px;margin-top:24px;padding-top:18px;border-top:1px solid var(--line)}
+.btn.ghost{border-color:transparent;box-shadow:none;background:transparent}
+.empties{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.empty{border:1px dashed var(--line-strong);border-radius:14px;padding:30px 20px;text-align:center;background:var(--bg)}
+.empty .ic{width:44px;height:44px;border-radius:12px;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;margin:0 auto;color:var(--amber-600)}
+.empty b{display:block;font-size:14px;font-weight:600;margin-top:14px}
+.empty p{font-size:13px;color:var(--muted);margin-top:4px}
+.empty .btn{margin-top:16px}
+.del{margin-top:16px;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:#E0654F0F;border:1px solid #E0654F40;font-size:13px}
+.del b{font-weight:500}
+.del .btn.d{margin-left:auto;background:#E0654F14;border-color:#E0654F55;color:var(--clay-text);box-shadow:none}
+.specs{margin-top:40px;display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.spec{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;font-size:12.5px;color:var(--muted);line-height:1.55}
+.spec b{display:block;color:var(--fg);font-size:13px;font-weight:600;margin-bottom:4px}
+
+/* ai blog writer */
+:root{--olive:#7E9A62}
+.paste-btn{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 6px 0 12px;border-radius:10px;border:1px solid var(--line-strong);background:#fff;font:500 13px Poppins;box-shadow:0 1px 2px #1B1E290D}
+.paste-btn svg{width:15px;height:15px;color:var(--amber-600)}
+kbd{font:500 10.5px "JetBrains Mono";color:var(--muted);background:var(--sunken);border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:1px 6px}
+.app{height:auto;min-height:900px}
+.crumbs2{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.crumbs2 b{color:var(--fg);font-weight:500}
+.wcols{display:grid;grid-template-columns:360px 1fr;gap:16px;margin-top:20px;align-items:start}
+.setup{padding:18px}
+.setup h3{font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px}
+.setup h3 svg{width:16px;height:16px;color:var(--amber-600)}
+.lb{font-size:12.5px;font-weight:500;margin:14px 0 6px;display:flex;align-items:center;gap:6px}
+.lb em{margin-left:auto;font-style:normal;font-weight:400;color:var(--muted);font-size:11.5px}
+.lb em.ai{color:var(--amber-text);font:500 10.5px "JetBrains Mono"}
+.lb i{width:6px;height:6px;border-radius:50%;background:var(--amber);display:block}
+.in2{min-height:40px;border-radius:10px;border:1px solid var(--line-strong);padding:10px 12px;font-size:13px;color:var(--fg);background:#fff;line-height:1.45}
+.in2.focus{border-color:var(--amber-600);box-shadow:0 0 0 4px #E9B03F33}
+.topics{display:flex;flex-direction:column;gap:6px}
+.tp{display:grid;grid-template-columns:1fr auto;gap:4px 10px;padding:9px 11px;border:1px solid var(--line);border-radius:11px;background:#fff}
+.tp.on{border-color:var(--amber-600);background:#FFFCF4;box-shadow:0 0 0 3px #E9B03F26}
+.tp b{font-size:12.5px;font-weight:500;line-height:1.35}
+.tp .pc{font:500 11px "JetBrains Mono";color:var(--amber-text);align-self:start}
+.tp .src{grid-column:1/-1;display:flex;gap:6px;align-items:center}
+.chip3{display:inline-flex;align-items:center;gap:4px;height:19px;padding:0 6px;border-radius:6px;font:500 10.5px "JetBrains Mono"}
+.chip3 svg{width:11px;height:11px}
+.c-pr{background:#A67BE51F;color:var(--violet-text)}
+.c-le{background:#7E9A6224;color:var(--olive-text)}
+.c-ra{background:#D9CBB566;color:var(--stone-text)}
+.seg3{display:flex;gap:3px;background:var(--sunken);padding:3px;border-radius:10px}
+.seg3 span{flex:1;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12.5px;color:var(--muted);white-space:nowrap}
+.seg3 span.on{background:#fff;color:var(--fg);box-shadow:0 1px 3px #1B1E291A;font-weight:500}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sbtn{margin-top:16px;display:flex;flex-direction:column;gap:8px}
+.sbtn .btn{justify-content:center;height:40px}
+.voice{margin-top:14px;padding:10px 12px;border-radius:11px;background:var(--bg);font-size:12px;color:var(--muted);line-height:1.5}
+.voice b{color:var(--fg);font-weight:500}
+.preview{padding:0;overflow:hidden}
+.pv-top{display:flex;align-items:center;gap:10px;padding:12px 18px;border-bottom:1px solid var(--line);background:#FBFAF7}
+.pv-top .st{white-space:nowrap;font:500 10.5px "JetBrains Mono";letter-spacing:.08em;text-transform:uppercase;color:var(--amber-text);background:#E9B03F26;border-radius:6px;padding:3px 8px}
+.pv-top .m{white-space:nowrap;font:11px "JetBrains Mono";color:var(--muted)}
+.pv-top .pvacts{margin-left:auto;display:flex;gap:8px}
+.pv-top .btn{height:34px}
+.doc{padding:22px 34px 26px;max-height:none}
+.doc .ttl{font:600 26px Poppins;letter-spacing:-.02em;line-height:1.25;border-radius:8px;padding:2px 6px;margin:0 -6px}
+.doc .slug{font:11.5px "JetBrains Mono";color:var(--muted);margin-top:6px}
+.doc .ex{margin-top:12px;padding:10px 12px;border-left:3px solid var(--amber);background:#FFFCF4;font-size:13.5px;color:var(--fg);line-height:1.55;border-radius:0 8px 8px 0}
+.doc .ex small{display:block;font:500 10px "JetBrains Mono";letter-spacing:.1em;color:var(--amber-text);text-transform:uppercase;margin-bottom:3px}
+.sec{position:relative;margin-top:18px;padding:6px 10px 8px;margin-left:-10px;margin-right:-10px;border-radius:12px}
+.sec.hover{background:var(--bg)}
+.sec h4{font-size:18px;font-weight:600;letter-spacing:-.01em}
+.sec p{font-size:14px;line-height:1.7;margin-top:8px;color:#2A2E3A}
+.sec p b{font-weight:600}
+.sec ul{margin-top:8px;padding-left:20px;font-size:14px;line-height:1.7;color:#2A2E3A}
+.sec .tools{position:absolute;top:6px;right:8px;display:flex;gap:4px}
+.sec .tools span{height:26px;padding:0 9px;border-radius:7px;background:#fff;box-shadow:0 1px 2px #1B1E2914;display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted)}
+.sec .tools svg{width:12px;height:12px}
+.code{margin-top:10px;border-radius:10px;background:#1B1E29;color:#E8E6E1;font:12.5px/1.6 "JetBrains Mono";padding:12px 14px;position:relative}
+.code .lg{position:absolute;top:8px;right:10px;font-size:10px;color:#FFFFFF80;text-transform:uppercase;letter-spacing:.08em}
+.code .k{color:#F3C969}
+.code .s{color:#A9C98C}
+.code .c{color:#FFFFFF66}
+.facts{margin-top:18px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:11.5px;color:var(--muted)}
+.facts b{color:var(--fg);font-weight:500}
+.bstates{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:40px;align-items:start}
+.blogc{padding:18px}
+.blogc .ch{margin-bottom:12px}
+.brow{display:flex;align-items:center;gap:12px;padding:10px 4px;border-top:1px solid var(--line)}
+.brow:first-of-type{border-top:0}
+.brow b{font-size:13.5px;font-weight:500;display:block;line-height:1.35}
+.brow span.d{font:11px "JetBrains Mono";color:var(--muted)}
+.brow .stt{margin-left:auto;font:500 10.5px "JetBrains Mono";padding:2px 8px;border-radius:99px;white-space:nowrap}
+.s-pub{background:#7E9A6226;color:var(--olive-text)}
+.s-dr{background:#E9B03F26;color:var(--amber-text)}
+.s-ai{background:#A67BE51F;color:var(--violet-text)}
+.brow .go{color:var(--muted)}
+.brow .go svg{width:14px;height:14px}
+.connected{display:inline-flex;align-items:center;gap:6px;font:500 10.5px "JetBrains Mono";color:var(--olive-text)}
+.connected i{width:6px;height:6px;border-radius:50%;background:var(--olive);display:block;box-shadow:0 0 0 3px #7E9A6233}
+.gsteps{display:flex;flex-direction:column;gap:10px}
+.gs{display:flex;align-items:center;gap:10px;font-size:13px}
+.gs .d2{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.gs .d2 svg{width:12px;height:12px;stroke-width:2.6}
+.gs.done .d2{background:#7E9A6226;color:var(--olive-text)}
+.gs.run .d2{border:2px solid #E9B03F55;border-top-color:var(--amber-600)}
+.gs.wait .d2{border:1.5px solid var(--line-strong)}
+.gs.wait{color:var(--muted)}
+.gs .ms{margin-left:auto;font:11px "JetBrains Mono";color:var(--muted)}
+.ln{height:12px;border-radius:6px;background:linear-gradient(90deg,var(--sunken),#F6F4EF,var(--sunken));margin-top:10px}
+.warnb{display:flex;gap:10px;padding:11px 13px;border-radius:12px;background:#E9B03F14;border:1px solid #E9B03F55;font-size:12.5px;line-height:1.5}
+.warnb svg{width:16px;height:16px;color:var(--amber-600);margin-top:1px;flex-shrink:0}
+.errb{display:flex;gap:10px;padding:11px 13px;border-radius:12px;background:#E0654F0F;border:1px solid #E0654F40;font-size:12.5px;line-height:1.5;color:var(--clay-text)}
+.errb svg{width:16px;height:16px;margin-top:1px;flex-shrink:0}
+.toast{display:flex;align-items:center;gap:12px;background:var(--fg);color:#fff;border-radius:14px;padding:12px 14px;box-shadow:0 12px 32px #1B1E2940;font-size:13px;white-space:nowrap}
+.toast .ok{width:26px;height:26px;border-radius:50%;background:#7E9A6240;color:#BFD6A6;display:flex;align-items:center;justify-content:center}
+.toast .ok svg{width:14px;height:14px;stroke-width:2.6}
+.toast span{color:#FFFFFFB3}
+.toast a{margin-left:auto;color:#F3C969;font-weight:500}
+.edit-md{margin-top:8px;border:1px solid var(--amber-600);box-shadow:0 0 0 4px #E9B03F26;border-radius:10px;padding:10px 12px;font:12.5px/1.6 "JetBrains Mono";color:var(--fg);background:#fff;white-space:pre-line}
+.stcard{padding:18px}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/></symbol>
+  <symbol id="ext" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1h5"/></symbol>
+  <symbol id="pen" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4z"/></symbol>
+  <symbol id="trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></symbol>
+  <symbol id="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a1 1 0 011-1h10"/></symbol>
+  <symbol id="at" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M16 12v1.5a2.5 2.5 0 005 0V12a9 9 0 10-3.5 7.1"/></symbol>
+  <symbol id="file" viewBox="0 0 24 24"><path d="M14 3H6a1 1 0 00-1 1v16a1 1 0 001 1h12a1 1 0 001-1V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></symbol>
+  <symbol id="book" viewBox="0 0 24 24"><path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z"/><path d="M4 19V5"/></symbol>
+  <symbol id="arrow" viewBox="0 0 24 24"><path d="M7 17L17 7M9 7h8v8"/></symbol>
+  <symbol id="dash" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></symbol>
+  <symbol id="clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="wallet" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M16 13h2M3 10h18"/></symbol>
+  <symbol id="bag" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2"/></symbol>
+  <symbol id="folder" viewBox="0 0 24 24"><path d="M3 6a1 1 0 011-1h5l2 2h9a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1z"/></symbol>
+  <symbol id="news" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></symbol>
+  <symbol id="gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9L7 7M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></symbol>
+  <symbol id="bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9M10 21h4"/></symbol>
+  <symbol id="panel" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></symbol>
+  <symbol id="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+  <symbol id="spark" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></symbol>
+  <symbol id="refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 10-2.3 5.7M20 5v6h-6"/></symbol>
+  <symbol id="alert" viewBox="0 0 24 24"><path d="M12 3l9 16H3zM12 10v4M12 17h.01"/></symbol>
+  <symbol id="info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+  <symbol id="send" viewBox="0 0 24 24"><path d="M4 12l16-8-6 16-2-7z"/></symbol>
+  <symbol id="check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="left" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></symbol>
+</svg>
+
+<div class="board">
+  <div class="board-head">
+    <div><div class="eyebrow">MasterMe · AI · Sanity</div><h1>AI blog writer</h1></div>
+    <p>Pick a topic from your real work → AI drafts a post in your voice →<br>you edit it here → it lands in Sanity as a draft. You publish in the Studio.<br>Writing: gpt-5.4-mini · Topic fit, language, "already covered": gpt-4.1-mini (Jev later)</p>
+  </div>
+
+  <div class="frame">
+    <div class="chrome"><i></i><i></i><i></i><div class="url">localhost:3000/portfolio/blog/new</div></div>
+    <div class="app">
+      <aside class="side">
+        <div class="brand"><img src="../public/images/avatar.png" alt=""><b>MasterMe</b></div>
+        <nav class="nav">
+          <div class="grp">Dashboards</div>
+          <a><svg class="i"><use href="#dash"/></svg>Dashboard</a>
+          <div class="grp">Life management</div>
+          <a class="on"><svg class="i"><use href="#globe"/></svg>Portfolio</a>
+          <a><svg class="i"><use href="#book"/></svg>Learning</a>
+          <a><svg class="i"><use href="#clock"/></svg>Timeline</a>
+          <a><svg class="i"><use href="#wallet"/></svg>Monthly Cost</a>
+          <div class="grp">Career &amp; business</div>
+          <a><svg class="i"><use href="#bag"/></svg>Jobs</a>
+          <a><svg class="i"><use href="#folder"/></svg>Projects</a>
+          <a><svg class="i"><use href="#news"/></svg>Tech News</a>
+          <div class="grp">Account</div>
+          <a><svg class="i"><use href="#gear"/></svg>Settings</a>
+        </nav>
+      </aside>
+      <div class="main">
+        <div class="hdr">
+          <span class="ib" style="width:32px;height:32px"><svg class="i"><use href="#panel"/></svg></span>
+          <span class="sep"></span>
+          <div class="crumb">MasterMe <span style="opacity:.6">/</span> Portfolio <span style="opacity:.6">/</span> <b>New post</b></div>
+          <span class="paste-btn"><svg class="i"><use href="#spark"/></svg>Paste anything<kbd>Ctrl ⇧ V</kbd></span>
+          <span class="date">Sat, Sep 26</span>
+          <span class="ib"><svg class="i"><use href="#bell"/></svg></span>
+          <span class="user"><img src="../public/images/avatar.png" alt="">Aymen<svg class="i" style="width:14px;height:14px;color:var(--muted)"><use href="#chev"/></svg></span>
+        </div>
+        <div class="content">
+          <div class="ph">
+            <div><div class="crumbs2"><svg class="i" style="width:14px;height:14px"><use href="#left"/></svg>Portfolio · Blog</div><h2>Write a post with AI</h2><p>Drafts go to your Sanity blog. Nothing is published from here.</p></div>
+            <span class="connected"><i></i>Sanity · latuc0m0 · production</span>
+          </div>
+
+          <div class="wcols">
+            <div class="card setup">
+              <h3><svg class="i"><use href="#spark"/></svg>What to write about</h3>
+              <div class="lb">Suggested from your work <em>fits your blog</em></div>
+              <div class="topics">
+                <div class="tp on"><b>How I built daily infra cost tracking for 6 Neon projects</b><span class="pc">92%</span><span class="src"><span class="chip3 c-pr"><svg class="i"><use href="#folder"/></svg>MasterMe</span><span class="chip3 c-pr">Neon</span></span></div>
+                <div class="tp"><b>Shipping Schoolink: lessons from a SaaS release</b><span class="pc">81%</span><span class="src"><span class="chip3 c-pr"><svg class="i"><use href="#folder"/></svg>Schoolink</span></span></div>
+                <div class="tp"><b>What I learned preparing MERN interview questions</b><span class="pc">64%</span><span class="src"><span class="chip3 c-le"><svg class="i"><use href="#book"/></svg>Learning</span></span></div>
+              </div>
+              <div class="lb">Or your own topic</div>
+              <div class="in2" style="color:var(--muted)">e.g. Why I stopped using Vercel for side projects</div>
+              <div class="lb">Your notes <em>optional, the AI only uses these facts</em></div>
+              <div class="in2 focus">Nightly cron at 05:00, one row per project per day, Recalculate button, fixed a double count between linked costs and Neon estimates.</div>
+              <div class="g2">
+                <div><div class="lb"><i></i>Language<em class="ai">EN 88%</em></div><div class="seg3"><span class="on">English</span><span>Français</span></div></div>
+                <div><div class="lb">Length</div><div class="seg3"><span>Short</span><span class="on">Medium</span><span>Long</span></div></div>
+              </div>
+              <div class="voice"><b>Your voice:</b> learned from your last 5 published posts (titles and excerpts): first person, practical, "How I…" framing, code where it helps.</div>
+              <div class="sbtn"><span class="btn"><svg class="i"><use href="#refresh"/></svg>Rewrite draft</span></div>
+            </div>
+
+            <div class="card preview">
+              <div class="pv-top"><span class="st">AI draft</span><span class="m">~1,050 words · 5 min read · 4 sections · 1 code block</span><div class="pvacts"><span class="btn ghost">Discard</span><span class="btn primary"><svg class="i"><use href="#send"/></svg>Send to Sanity as draft</span></div></div>
+              <div class="doc">
+                <div class="ttl">How I Built Daily Infra Cost Tracking for 6 Neon Projects</div>
+                <div class="slug">/blog/how-i-built-daily-infra-cost-tracking-for-6-neon-projects</div>
+                <div class="ex"><small>Excerpt</small>A nightly job, one row per project per day, and a Recalculate button: how I stopped guessing what my side projects cost.</div>
+
+                <div class="sec"><h4>The problem: costs I only saw at the end of the month</h4><p>I run <b>6 projects on Neon</b> and one shared Vercel plan. My dashboard called Neon's API on every page load, which was slow, and the totals quietly <b>double-counted</b> projects that also had a linked monthly cost.</p></div>
+
+                <div class="sec hover"><div class="tools"><span><svg class="i"><use href="#pen"/></svg>Edit</span><span><svg class="i"><use href="#refresh"/></svg>Rewrite</span><span><svg class="i"><use href="#trash"/></svg></span></div><h4>One row per project, per day</h4><p>The fix was to store the estimate instead of fetching it live. A nightly cron at 05:00 writes one snapshot per project; running it again the same day replaces that day's row.</p>
+                  <div class="code"><span class="lg">typescript</span><span class="k">await</span> prisma.infraCostSnapshot.<span class="k">upsert</span>({<br>&nbsp;&nbsp;where: { projectId_day: { projectId, day } },<br>&nbsp;&nbsp;create: { projectId, day, neonUsd },<br>&nbsp;&nbsp;update: { neonUsd },<br>});</div>
+                </div>
+
+                <div class="sec"><h4>What I'd do differently</h4><ul><li>Store the Neon project id with each reading, so relinking starts a clean series</li><li>Show "stale" instead of hiding a failed reading</li></ul></div>
+                <div class="facts">Facts used: <b>your notes</b> · <b>project "MasterMe"</b> · 6 Neon projects from your data · no invented numbers</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bstates">
+    <div>
+      <div class="st-h"><div class="eyebrow">Entry · Portfolio page</div><b>Blog card <span>· latest posts from Sanity</span></b></div>
+      <div class="card blogc">
+        <div class="ch"><div class="t"><h3>Blog</h3><span class="count">25</span></div><span class="btn primary" style="height:32px"><svg class="i"><use href="#spark"/></svg>Write with AI</span></div>
+        <div class="brow"><div><b>How I Built Daily Infra Cost Tracking…</b><span class="d">today · by AI, not published</span></div><span class="stt s-dr">Draft</span><span class="go"><svg class="i"><use href="#ext"/></svg></span></div>
+        <div class="brow"><div><b>How I Built BuildformAI in 120 Hours Using Kimi Code</b><span class="d">3 May</span></div><span class="stt s-pub">Published</span><span class="go"><svg class="i"><use href="#ext"/></svg></span></div>
+        <div class="brow"><div><b>How I Ship MVPs in 2-4 Weeks Without Creating Technical Debt</b><span class="d">24 Apr</span></div><span class="stt s-pub">Published</span><span class="go"><svg class="i"><use href="#ext"/></svg></span></div>
+        <div class="brow"><div><b>Mastering Next.js Middleware: Practical Use Cases</b><span class="d">no date</span></div><span class="stt s-dr">Unpublished</span><span class="go"><svg class="i"><use href="#ext"/></svg></span></div>
+        <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center"><span class="connected"><i></i>Connected to Sanity</span><span style="font-size:12px;color:var(--sky-text);font-weight:500">Open Studio →</span></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="st-h"><div class="eyebrow">Writing</div><b>Outline first, then sections <span>· in your voice</span></b></div>
+      <div class="card stcard">
+        <div class="gsteps">
+          <div class="gs done"><span class="d2"><svg class="i"><use href="#check"/></svg></span>Checked it isn't already on your blog<span class="ms">0.9s</span></div>
+          <div class="gs done"><span class="d2"><svg class="i"><use href="#check"/></svg></span>Outline · 4 sections<span class="ms">2.1s</span></div>
+          <div class="gs run"><span class="d2"></span>Writing the post<span class="ms">…</span></div>
+        </div>
+        <div class="ln" style="width:70%;height:18px;margin-top:18px"></div><div class="ln"></div><div class="ln"></div><div class="ln" style="width:85%"></div><div class="ln" style="width:40%;height:14px;margin-top:18px"></div><div class="ln"></div><div class="ln" style="width:60%"></div>
+      </div>
+      <div class="st-h" style="margin-top:24px"><div class="eyebrow">Already covered</div><b>Similar post found <span>· before writing</span></b></div>
+      <div class="warnb"><svg class="i"><use href="#info"/></svg><span>This looks close to "<b>How I Ship MVPs in 2-4 Weeks…</b>" (74%). Write a different angle, or continue anyway.</span></div>
+    </div>
+
+    <div>
+      <div class="st-h"><div class="eyebrow">Edit a section</div><b>Plain text with light marks <span>· ## heading, - list, ``` code</span></b></div>
+      <div class="card stcard">
+        <div class="edit-md">## One row per project, per day
+The fix was to **store** the estimate instead of fetching it live.
+- nightly cron at 05:00
+- same-day runs replace the row</div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px"><span class="btn ghost" style="height:32px">Cancel</span><span class="btn primary" style="height:32px">Save section</span></div>
+      </div>
+      <div class="st-h" style="margin-top:24px"><div class="eyebrow">Sent</div><b>Draft in Sanity <span>· publish it in the Studio</span></b></div>
+      <div class="toast"><span class="ok"><svg class="i"><use href="#check"/></svg></span><div><b style="font-weight:500">Draft saved to Sanity</b> <span>· not published</span></div><a>Open in Studio →</a></div>
+      <div class="st-h" style="margin-top:24px"><div class="eyebrow">Error</div><b>Sanity refused <span>· draft kept here</span></b></div>
+      <div class="errb"><svg class="i"><use href="#alert"/></svg>Sanity rejected the token (401). Check SANITY_API_WRITE_TOKEN has Editor rights. Your draft is still here.</div>
+    </div>
+  </div>
+
+  <div class="specs">
+    <div class="spec"><b>Where it lives</b>A Blog card on Portfolio (latest posts from Sanity, draft / published) and a "Write with AI" page at /portfolio/blog/new.</div>
+    <div class="spec"><b>What the AI uses</b>Your notes, the picked project, learning path or radar item, and your last 5 post titles and excerpts for voice. It never invents numbers, clients or results.</div>
+    <div class="spec"><b>What gets saved</b>A Sanity draft only: title, slug, excerpt, author (you), and a Portable Text body with h2/h3, lists, bold and code blocks. No publish, no image. You add those in the Studio.</div>
+    <div class="spec"><b>Safety</b>The Sanity write token stays on the server. Every draft is logged (topic, length, outcome), never the text.</div>
+  </div>
+</div>
+</body>
+</html>

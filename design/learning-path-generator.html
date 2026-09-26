@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MasterMe Learning Path Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+:root{
+  --bg:#F6F4EF;--surface:#FFFFFF;--sunken:#EFECE5;--line:#1B1E2914;--line-strong:#1B1E2926;
+  --fg:#1B1E29;--muted:#5E6578;--ink:#0E0F14;
+  --amber:#E9B03F;--amber-600:#C98A1E;--amber-text:#9A6710;
+  --sky:#5B9DE6;--sky-text:#2F6FB8;--olive-text:#4E6B35;--clay-text:#B8432F;--violet-text:#7A4FC0;--stone-text:#6B5A3E;
+  --shadow:0 1px 2px #1B1E290A,0 4px 16px #1B1E290D;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:1600px;background:#E9E6DF;color:var(--fg);font-family:Poppins,sans-serif;-webkit-font-smoothing:antialiased}
+.mono{font-family:"JetBrains Mono",monospace}
+svg.i{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.board{padding:48px 80px 64px}
+.eyebrow{font:500 11px "JetBrains Mono";letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.board-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:24px}
+.board-head h1{font:600 28px Poppins;letter-spacing:-.02em;margin-top:6px}
+.board-head p{font:12px "JetBrains Mono";color:var(--muted);text-align:right;line-height:1.7}
+.frame{border-radius:18px;overflow:hidden;box-shadow:0 30px 80px #1B1E2926;border:1px solid var(--line-strong)}
+.chrome{height:36px;background:#FBFAF7;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;padding:0 14px}
+.chrome i{width:11px;height:11px;border-radius:50%;background:#D8D4CB;display:block}
+.chrome .url{margin-left:18px;height:22px;flex:0 0 360px;border-radius:6px;background:var(--sunken);font:11px "JetBrains Mono";color:var(--muted);display:flex;align-items:center;padding:0 10px}
+
+/* app shell (matches the built app) */
+.app{height:900px;background:var(--bg);display:grid;grid-template-columns:300px 1fr;gap:16px;padding:16px}
+.side{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:20px 16px}
+.brand{display:flex;align-items:center;gap:10px;padding:0 0 22px}
+.brand img{width:40px;height:40px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 2px #fff,0 0 0 4px var(--amber)}
+.brand b{font-size:20px;font-weight:600}
+.grp{font:500 10px "JetBrains Mono";letter-spacing:.12em;text-transform:uppercase;color:#5E6578CC;padding:18px 0 6px}
+.grp:first-of-type{padding-top:0}
+.nav a{position:relative;display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:10px;font-size:13.5px;font-weight:500;color:var(--muted)}
+.nav a.on{background:var(--bg);color:var(--fg)}
+.nav a.on::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:0 3px 3px 0;background:var(--amber)}
+.nav a.on svg{color:var(--amber-600)}
+.main{display:flex;flex-direction:column;gap:16px;min-width:0}
+.hdr{height:56px;flex-shrink:0;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);display:flex;align-items:center;gap:12px;padding:0 16px}
+.hdr .sep{width:1px;height:20px;background:var(--line-strong)}
+.crumb{flex:1;font-size:14px;color:var(--muted)}
+.crumb b{color:var(--fg);font-weight:500}
+.hdr .date{font:12px "JetBrains Mono";color:var(--muted);padding-right:8px}
+.ib{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.user{display:flex;align-items:center;gap:8px;padding:4px 8px 4px 4px;border-radius:10px;font-size:14px;font-weight:500}
+.user img{width:32px;height:32px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 2px #fff,0 0 0 4px var(--amber)}
+
+/* page */
+.content{padding:8px 8px 0}
+.ph{display:flex;justify-content:space-between;align-items:flex-end}
+.ph h2{font:600 26px Poppins;letter-spacing:-.02em}
+.ph p{font-size:14px;color:var(--muted);margin-top:4px}
+.cols{display:grid;grid-template-columns:1.15fr 1fr;gap:16px;margin-top:22px}
+.card{background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:20px}
+.ch{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.ch .t{display:flex;align-items:center;gap:10px}
+.ch h3{font-size:15px;font-weight:600}
+.count{font:500 11px "JetBrains Mono";color:var(--muted);background:var(--sunken);border-radius:99px;padding:2px 8px}
+.btn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:8px;font:500 13px Poppins;border:1px solid var(--line-strong);background:#fff;box-shadow:0 1px 2px #1B1E290D;white-space:nowrap}
+.btn svg{width:14px;height:14px}
+.btn.primary{background:var(--amber);border-color:transparent;color:var(--ink);box-shadow:0 1px 2px #9A671033}
+.btn.lg{height:40px;padding:0 18px;font-size:14px;border-radius:10px}
+
+/* link rows */
+.row{display:flex;align-items:center;gap:14px;padding:12px;border-radius:14px;border:1px solid var(--line);background:#fff}
+.row + .row{margin-top:8px}
+.row.hover{background:var(--bg)}
+.fav{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.row .tt{font-size:14px;font-weight:500;display:flex;align-items:center;gap:8px}
+.row .u{font:12px "JetBrains Mono";color:var(--muted);margin-top:2px}
+.acts{margin-left:auto;display:flex;gap:2px;color:var(--muted)}
+.acts span{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.acts span.h{background:#fff;color:var(--fg);box-shadow:0 1px 2px #1B1E2914}
+.acts svg{width:16px;height:16px}
+.badge{display:inline-flex;align-items:center;gap:5px;height:20px;padding:0 8px;border-radius:99px;font:500 11px Poppins;border:1px solid}
+.badge::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor}
+.b-primary{color:var(--amber-text);background:#E9B03F26;border-color:#E9B03F66}
+
+/* social tiles */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{position:relative;border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px;background:#fff}
+.tile.hover{background:var(--bg)}
+.mono-t{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font:700 13px Poppins;flex-shrink:0}
+.tile b{display:block;font-size:14px;font-weight:500}
+.tile span.h{display:block;font:12px "JetBrains Mono";color:var(--muted);margin-top:1px}
+.tile .go{margin-left:auto;color:var(--muted)}
+.tile .mini{position:absolute;top:8px;right:8px;display:flex;gap:2px}
+.tile .mini span{width:28px;height:28px;border-radius:7px;background:#fff;box-shadow:0 1px 2px #1B1E2914;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.tile .mini svg{width:14px;height:14px}
+.add-tile{border:1px dashed var(--line-strong);border-radius:14px;display:flex;align-items:center;justify-content:center;gap:8px;color:var(--muted);font-size:13px;min-height:70px}
+.t-sky{background:#5B9DE61F;color:var(--sky-text)}
+.t-amber{background:#E9B03F2E;color:var(--amber-text)}
+.t-olive{background:#7E9A6224;color:var(--olive-text)}
+.t-violet{background:#A67BE51F;color:var(--violet-text)}
+.t-stone{background:#D9CBB566;color:var(--stone-text)}
+.t-ink{background:#1B1E290F;color:var(--fg)}
+
+/* states */
+.states{display:grid;grid-template-columns:460px 1fr;gap:28px;margin-top:40px;align-items:start}
+.st-h{margin-bottom:12px}
+.st-h b{display:block;font-size:15px;font-weight:600;margin-top:4px}
+.st-h span{font-weight:400;font-size:12px;color:var(--muted)}
+.sheet{background:#fff;border:1px solid var(--line-strong);border-radius:20px;box-shadow:0 12px 32px #1B1E291F;padding:24px}
+.sheet h4{font-size:18px;font-weight:600}
+.sheet .d{font-size:13px;color:var(--muted);margin-top:4px}
+.f{margin-top:18px}
+label{display:block;font-size:13px;font-weight:500;margin-bottom:8px}
+label em{font-style:normal;color:var(--muted);font-weight:400}
+.input{height:40px;border-radius:10px;border:1px solid var(--line-strong);padding:0 14px;display:flex;align-items:center;font-size:14px;color:var(--muted);background:#fff}
+.input .v{color:var(--fg)}
+.input.focus{border-color:var(--amber-600);box-shadow:0 0 0 4px #E9B03F33}
+.hint{font-size:12px;color:var(--muted);margin-top:6px}
+.sheet .foot{display:flex;justify-content:flex-end;gap:8px;margin-top:24px;padding-top:18px;border-top:1px solid var(--line)}
+.btn.ghost{border-color:transparent;box-shadow:none;background:transparent}
+.empties{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.empty{border:1px dashed var(--line-strong);border-radius:14px;padding:30px 20px;text-align:center;background:var(--bg)}
+.empty .ic{width:44px;height:44px;border-radius:12px;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;margin:0 auto;color:var(--amber-600)}
+.empty b{display:block;font-size:14px;font-weight:600;margin-top:14px}
+.empty p{font-size:13px;color:var(--muted);margin-top:4px}
+.empty .btn{margin-top:16px}
+.del{margin-top:16px;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:#E0654F0F;border:1px solid #E0654F40;font-size:13px}
+.del b{font-weight:500}
+.del .btn.d{margin-left:auto;background:#E0654F14;border-color:#E0654F55;color:var(--clay-text);box-shadow:none}
+.specs{margin-top:40px;display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.spec{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;font-size:12.5px;color:var(--muted);line-height:1.55}
+.spec b{display:block;color:var(--fg);font-size:13px;font-weight:600;margin-bottom:4px}
+
+/* learning */
+.app{height:auto;min-height:900px}
+.ph .btn.primary{height:40px;padding:0 16px;font-size:14px;border-radius:10px}
+.bar-row{display:flex;justify-content:space-between;align-items:center;margin-top:20px}
+.tabs{display:inline-flex;background:var(--sunken);padding:4px;border-radius:12px;gap:4px}
+.tabs span{padding:6px 12px;border-radius:8px;font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.tabs span i{font:500 11px "JetBrains Mono";font-style:normal;color:var(--muted)}
+.tabs span.on{background:#fff;color:var(--fg);box-shadow:0 1px 3px #1B1E291A,inset 0 -2px 0 var(--amber)}
+.stat-inline{display:flex;gap:18px;font:12px "JetBrains Mono";color:var(--muted)}
+.stat-inline b{color:var(--fg);font-weight:500}
+.lcols{display:grid;grid-template-columns:340px 1fr;gap:16px;margin-top:16px;align-items:start}
+.paths{display:flex;flex-direction:column;gap:10px}
+.pc{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:16px;position:relative}
+.pc.sel{box-shadow:0 0 0 2px var(--amber),var(--shadow);border-color:transparent}
+.pc .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.pc b{font-size:14px;font-weight:600;line-height:1.35}
+.pc .next{font-size:12px;color:var(--muted);margin-top:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pc .next em{font-style:normal;color:var(--fg)}
+.prog{display:flex;align-items:center;gap:10px;margin-top:12px}
+.track{flex:1;height:6px;border-radius:99px;background:var(--sunken);overflow:hidden}
+.track i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#7E9A62,#E9B03F)}
+.track.done i{background:#7E9A62}
+.track.paused i{background:#D8D4CB}
+.prog span{font:500 11px "JetBrains Mono";color:var(--muted);min-width:34px;text-align:right}
+.b-active{color:#2F6FB8;background:#5B9DE61A;border-color:#5B9DE64D}
+.b-paused{color:#6B5A3E;background:#D9CBB54D;border-color:#D9CBB5}
+.b-done{color:#4E6B35;background:#7E9A6224;border-color:#7E9A6266}
+.b-prog{color:#9A6710;background:#E9B03F26;border-color:#E9B03F66}
+.detail{padding:22px 24px}
+.dh{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+.dh h3{font-size:20px;font-weight:600;letter-spacing:-.01em;display:flex;align-items:center;gap:10px}
+.dh p{font-size:13.5px;color:var(--muted);margin-top:6px;max-width:520px;line-height:1.55}
+.dacts{display:flex;gap:6px;flex-shrink:0}
+.ibtn{width:32px;height:32px;border-radius:8px;border:1px solid var(--line-strong);display:flex;align-items:center;justify-content:center;color:var(--muted);background:#fff}
+.ibtn svg{width:15px;height:15px}
+.big-track{height:8px}
+.items-h{display:flex;justify-content:space-between;align-items:center;margin:22px 0 10px}
+.items-h b{font-size:14px;font-weight:600}
+.items-h span{font:11px "JetBrains Mono";color:var(--muted)}
+.items{display:flex;flex-direction:column}
+.it{display:grid;grid-template-columns:22px 26px 1fr auto;gap:12px;align-items:center;padding:10px;border-radius:12px}
+.it + .it{border-top:1px solid var(--line)}
+.it.hover{background:var(--bg);border-top-color:transparent}
+.it.hover + .it{border-top-color:transparent}
+.it .n{font:11px "JetBrains Mono";color:#5E657899;text-align:right}
+.st{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line-strong);display:flex;align-items:center;justify-content:center;background:#fff}
+.st.done{background:#7E9A62;border-color:#7E9A62}
+.st.done svg{width:12px;height:12px;stroke:#fff;stroke-width:3}
+.st.prog{border-color:var(--amber);background:conic-gradient(var(--amber) 0 50%, #fff 50% 100%)}
+.it .t{font-size:13.5px;font-weight:500}
+.it.is-done .t{color:var(--muted);text-decoration:line-through;text-decoration-color:#5E657866}
+.it .d{font-size:12px;color:var(--muted);margin-top:2px}
+.chip{display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 8px;border-radius:6px;background:var(--sunken);font:11px "JetBrains Mono";color:var(--sky-text);margin-top:6px}
+.chip svg{width:11px;height:11px}
+.it .ra{display:flex;gap:2px;color:var(--muted);opacity:.0}
+.it.hover .ra{opacity:1}
+.it .ra span{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;background:#fff;box-shadow:0 1px 2px #1B1E2914}
+.it .ra svg{width:14px;height:14px}
+.add-item{margin-top:8px;border:1px dashed var(--line-strong);border-radius:12px;height:44px;display:flex;align-items:center;justify-content:center;gap:8px;color:var(--muted);font-size:13px}
+.add-item svg{width:15px;height:15px}
+.textarea{height:76px;border-radius:10px;border:1px solid var(--line-strong);padding:10px 14px;font-size:14px;color:var(--fg);background:#fff;line-height:1.5}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--sunken);padding:4px;border-radius:10px}
+.seg span{height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;color:var(--muted)}
+.seg span.on{background:#fff;color:var(--fg);box-shadow:0 1px 3px #1B1E291A}
+.dlg{background:#fff;border:1px solid var(--line-strong);border-radius:20px;box-shadow:0 12px 32px #1B1E291F;overflow:hidden;position:relative}
+.dlg .hd{padding:24px 24px 6px}
+.dlg .hd h4{font-size:18px;font-weight:600}
+.dlg .hd p{font-size:13px;color:var(--muted);margin-top:4px}
+.dlg .x{position:absolute;top:20px;right:20px;color:var(--muted)}
+.dlg .bd{padding:0 24px 22px}
+.dlg .ft{display:flex;justify-content:flex-end;gap:8px;padding:16px 24px;border-top:1px solid var(--line)}
+.dstates{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;margin-top:40px;align-items:start}
+.dot-s{width:8px;height:8px;border-radius:50%;display:inline-block}
+
+/* learning path generator */
+:root{--olive:#7E9A62}
+.paste-btn{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 6px 0 12px;border-radius:10px;border:1px solid var(--line-strong);background:#fff;font:500 13px Poppins;box-shadow:0 1px 2px #1B1E290D}
+.paste-btn svg{width:15px;height:15px;color:var(--amber-600)}
+kbd{font:500 10.5px "JetBrains Mono";color:var(--muted);background:var(--sunken);border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:1px 6px}
+.app.gen{position:relative}
+.overlay{position:absolute;inset:0;background:#1B1E2966;backdrop-filter:blur(2px);display:flex;align-items:flex-start;justify-content:center;padding-top:36px}
+.btn.aib{border-color:#C98A1E80;box-shadow:0 0 0 4px #E9B03F26}
+.btn.aib svg{color:var(--amber-600)}
+.pd{background:#fff;border:1px solid var(--line-strong);border-radius:20px;box-shadow:0 12px 32px #1B1E291F;overflow:hidden;position:relative}
+.pd.big{width:760px;box-shadow:0 24px 64px #1B1E2940}
+.pd-h{display:flex;align-items:flex-start;gap:12px;padding:20px 22px 0}
+.pd-h .spark{width:36px;height:36px;border-radius:10px;background:#E9B03F26;color:var(--amber-600);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pd-h h4{font-size:17px;font-weight:600;line-height:1.2}
+.pd-h p{font-size:12.5px;color:var(--muted);margin-top:2px}
+.pd-h .xx{margin-left:auto;color:var(--muted)}
+.pd-b{padding:16px 22px 0}
+.pd-f{display:flex;align-items:center;gap:8px;padding:14px 22px;margin-top:18px;border-top:1px solid var(--line);background:#FBFAF7;justify-content:flex-end}
+.pd-f .meta{font:11px "JetBrains Mono";color:var(--muted);margin-right:auto;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.pd-f .meta i{width:6px;height:6px;border-radius:50%;background:var(--olive);display:block}
+.pd .btn{height:36px}
+.lbl2{font-size:12.5px;font-weight:500;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.lbl2 em{font-style:normal;color:var(--muted);font-weight:400;margin-left:auto;font-size:11.5px}
+.lbl2 em.ai{color:var(--amber-text);font:500 10.5px "JetBrains Mono"}
+.lbl2 i.dot{width:6px;height:6px;border-radius:50%;background:var(--amber);display:block}
+.in2{min-height:40px;border-radius:10px;border:1px solid var(--line-strong);padding:10px 12px;font-size:13.5px;color:var(--muted);background:#fff}
+.in2.focus{border-color:var(--amber-600);box-shadow:0 0 0 4px #E9B03F33;color:var(--fg)}
+.in2.v{color:var(--fg)}
+.seg3{display:flex;gap:3px;background:var(--sunken);padding:3px;border-radius:10px}
+.seg3 span{flex:1;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12.5px;color:var(--muted);white-space:nowrap}
+.seg3 span.on{background:#fff;color:var(--fg);box-shadow:0 1px 3px #1B1E291A;font-weight:500}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.sugg{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.sugg span{height:26px;padding:0 10px;border-radius:99px;border:1px solid var(--line);font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px;background:#fff}
+.sugg span svg{width:12px;height:12px;color:var(--amber-600)}
+.phead{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:#FFFCF4}
+.phead .tt{font-size:15.5px;font-weight:600}
+.phead .dd{font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.5}
+.phead .sum{margin-left:auto;text-align:right;flex-shrink:0}
+.phead .sum b{display:block;font:500 18px "JetBrains Mono"}
+.phead .sum span{font:11px "JetBrains Mono";color:var(--muted)}
+.steps2{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+.s2{display:grid;grid-template-columns:18px 26px 1fr auto;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#fff}
+.s2.known{background:var(--bg)}
+.s2.off{opacity:.45}
+.s2.off .t{text-decoration:line-through}
+.s2 .cb{width:18px;height:18px;border-radius:5px;background:var(--amber);display:flex;align-items:center;justify-content:center}
+.s2 .cb svg{width:12px;height:12px;stroke:var(--ink);stroke-width:3}
+.s2 .cb.off{background:#fff;border:1.5px solid var(--line-strong)}
+.s2 .n{font:500 11px "JetBrains Mono";color:var(--muted)}
+.s2 .t{font-size:13.5px;font-weight:500;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.s2 .d{font-size:12px;color:var(--muted);margin-top:2px}
+.s2 .meta3{display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap}
+.kind{display:inline-flex;align-items:center;gap:4px;height:19px;padding:0 6px;border-radius:6px;font:500 10.5px "JetBrains Mono"}
+.kind svg{width:11px;height:11px}
+.k-read{background:#5B9DE61F;color:var(--sky-text)}
+.k-watch{background:#A67BE51F;color:var(--violet-text)}
+.k-build{background:#E9B03F2E;color:var(--amber-text)}
+.k-prac{background:#7E9A6224;color:var(--olive-text)}
+.diff{display:inline-flex;align-items:center;gap:3px;font:11px "JetBrains Mono";color:var(--muted)}
+.diff i{width:6px;height:6px;border-radius:2px;background:var(--sunken);display:block}
+.diff i.on{background:var(--amber-600)}
+.hrs{font:11px "JetBrains Mono";color:var(--muted)}
+.find{font:11px "JetBrains Mono";color:var(--sky-text);display:inline-flex;align-items:center;gap:4px}
+.find svg{width:11px;height:11px}
+.knowtag{display:inline-flex;align-items:center;gap:4px;height:19px;padding:0 7px;border-radius:6px;background:#7E9A6226;color:var(--olive-text);font:500 10.5px "JetBrains Mono"}
+.s2 .ra2{display:flex;gap:2px;color:var(--muted)}
+.s2 .ra2 span{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center}
+.s2 .ra2 svg{width:13px;height:13px}
+.s2.hover{background:var(--bg)}
+.s2.hover .ra2 span{background:#fff;box-shadow:0 1px 2px #1B1E2914}
+.legend2{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);margin-top:12px}
+.legend2 i{width:6px;height:6px;border-radius:50%;background:var(--amber);display:block}
+.gsteps{display:flex;flex-direction:column;gap:10px}
+.gs{display:flex;align-items:center;gap:10px;font-size:13px}
+.gs .d2{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.gs .d2 svg{width:12px;height:12px;stroke-width:2.6}
+.gs.done .d2{background:#7E9A6226;color:var(--olive-text)}
+.gs.run .d2{border:2px solid #E9B03F55;border-top-color:var(--amber-600)}
+.gs.wait .d2{border:1.5px solid var(--line-strong)}
+.gs.wait{color:var(--muted)}
+.gs .ms{margin-left:auto;font:11px "JetBrains Mono";color:var(--muted)}
+.skel2{height:46px;border-radius:12px;background:linear-gradient(90deg,var(--sunken),#F6F4EF,var(--sunken));margin-top:6px}
+.lstates{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:40px;align-items:start}
+.emptyd{border:1px dashed var(--line-strong);border-radius:14px;padding:26px 18px;text-align:center;background:var(--bg)}
+.emptyd .ic{width:44px;height:44px;border-radius:12px;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;margin:0 auto;color:var(--amber-600)}
+.emptyd b{display:block;font-size:14px;font-weight:600;margin-top:12px}
+.emptyd p{font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.5}
+.emptyd .row3{display:flex;gap:8px;justify-content:center;margin-top:14px}
+.toast{display:flex;align-items:center;gap:12px;background:var(--fg);color:#fff;border-radius:14px;padding:12px 14px;box-shadow:0 12px 32px #1B1E2940;font-size:13px;white-space:nowrap}
+.toast .ok{width:26px;height:26px;border-radius:50%;background:#7E9A6240;color:#BFD6A6;display:flex;align-items:center;justify-content:center}
+.toast .ok svg{width:14px;height:14px;stroke-width:2.6}
+.toast span{color:#FFFFFFB3}
+.toast a{margin-left:auto;color:#F3C969;font-weight:500}
+.toast .u{color:#FFFFFFB3;font-weight:500;padding-left:12px;border-left:1px solid #FFFFFF26}
+.errb{display:flex;gap:10px;padding:11px 13px;border-radius:12px;background:#E0654F0F;border:1px solid #E0654F40;font-size:12.5px;line-height:1.5;color:var(--clay-text)}
+.errb svg{width:16px;height:16px;margin-top:1px;flex-shrink:0}
+.warnb{display:flex;gap:10px;padding:11px 13px;border-radius:12px;background:#E9B03F14;border:1px solid #E9B03F55;font-size:12.5px;line-height:1.5;margin-top:12px}
+.warnb svg{width:16px;height:16px;color:var(--amber-600);margin-top:1px;flex-shrink:0}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/></symbol>
+  <symbol id="ext" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1h5"/></symbol>
+  <symbol id="pen" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4z"/></symbol>
+  <symbol id="trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></symbol>
+  <symbol id="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a1 1 0 011-1h10"/></symbol>
+  <symbol id="at" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M16 12v1.5a2.5 2.5 0 005 0V12a9 9 0 10-3.5 7.1"/></symbol>
+  <symbol id="file" viewBox="0 0 24 24"><path d="M14 3H6a1 1 0 00-1 1v16a1 1 0 001 1h12a1 1 0 001-1V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></symbol>
+  <symbol id="book" viewBox="0 0 24 24"><path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z"/><path d="M4 19V5"/></symbol>
+  <symbol id="arrow" viewBox="0 0 24 24"><path d="M7 17L17 7M9 7h8v8"/></symbol>
+  <symbol id="dash" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></symbol>
+  <symbol id="clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="wallet" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M16 13h2M3 10h18"/></symbol>
+  <symbol id="bag" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2"/></symbol>
+  <symbol id="folder" viewBox="0 0 24 24"><path d="M3 6a1 1 0 011-1h5l2 2h9a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1z"/></symbol>
+  <symbol id="news" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></symbol>
+  <symbol id="gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9L7 7M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></symbol>
+  <symbol id="bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9M10 21h4"/></symbol>
+  <symbol id="panel" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></symbol>
+  <symbol id="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+
+  <symbol id="check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="up" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></symbol>
+  <symbol id="down" viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></symbol>
+  <symbol id="pause" viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></symbol>
+  <symbol id="x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="route" viewBox="0 0 24 24"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H16a3.5 3.5 0 000-7H8a3.5 3.5 0 010-7h7.5"/></symbol>
+  <symbol id="spark" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></symbol>
+  <symbol id="refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 10-2.3 5.7M20 5v6h-6"/></symbol>
+  <symbol id="alert" viewBox="0 0 24 24"><path d="M12 3l9 16H3zM12 10v4M12 17h.01"/></symbol>
+  <symbol id="info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+  <symbol id="search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></symbol>
+  <symbol id="play" viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z"/></symbol>
+</svg>
+
+<div class="board">
+  <div class="board-head">
+    <div><div class="eyebrow">MasterMe · AI · 04</div><h1>Learning path generator</h1></div>
+    <p>Say what you want to learn → AI drafts 6–10 ordered steps, rates difficulty,<br>and marks what you already know from your stack. You trim, then create.<br>Steps: gpt-5.4-mini · Level, difficulty, "already know": gpt-4.1-mini (Jev later)</p>
+  </div>
+
+  <div class="frame">
+    <div class="chrome"><i></i><i></i><i></i><div class="url">localhost:3000/learning</div></div>
+    <div class="app gen">
+      <aside class="side">
+        <div class="brand"><img src="../public/images/avatar.png" alt=""><b>MasterMe</b></div>
+        <nav class="nav">
+          <div class="grp">Dashboards</div>
+          <a><svg class="i"><use href="#dash"/></svg>Dashboard</a>
+          <div class="grp">Life management</div>
+          <a><svg class="i"><use href="#globe"/></svg>Portfolio</a>
+          <a class="on"><svg class="i"><use href="#book"/></svg>Learning</a>
+          <a><svg class="i"><use href="#clock"/></svg>Timeline</a>
+          <a><svg class="i"><use href="#wallet"/></svg>Monthly Cost</a>
+          <div class="grp">Career &amp; business</div>
+          <a><svg class="i"><use href="#bag"/></svg>Jobs</a>
+          <a><svg class="i"><use href="#folder"/></svg>Projects</a>
+          <a><svg class="i"><use href="#news"/></svg>Tech News</a>
+          <div class="grp">Account</div>
+          <a><svg class="i"><use href="#gear"/></svg>Settings</a>
+        </nav>
+      </aside>
+      <div class="main">
+        <div class="hdr">
+          <span class="ib" style="width:32px;height:32px"><svg class="i"><use href="#panel"/></svg></span>
+          <span class="sep"></span>
+          <div class="crumb">MasterMe <span style="opacity:.6">/</span> <b>Learning</b></div>
+          <span class="paste-btn"><svg class="i"><use href="#spark"/></svg>Paste anything<kbd>Ctrl ⇧ V</kbd></span>
+          <span class="date">Sat, Sep 26</span>
+          <span class="ib"><svg class="i"><use href="#bell"/></svg></span>
+          <span class="user"><img src="../public/images/avatar.png" alt="">Aymen<svg class="i" style="width:14px;height:14px;color:var(--muted)"><use href="#chev"/></svg></span>
+        </div>
+        <div class="content">
+          <div class="ph">
+            <div><h2>Learning</h2><p>Build learning paths and track every step.</p></div>
+            <div style="display:flex;gap:8px"><span class="btn aib"><svg class="i"><use href="#spark"/></svg>Generate with AI</span><span class="btn primary"><svg class="i"><use href="#plus"/></svg>New path</span></div>
+          </div>
+          <div style="display:grid;grid-template-columns:320px 1fr;gap:16px;margin-top:22px">
+            <div style="display:flex;flex-direction:column;gap:10px"><div style="height:96px;border-radius:16px;background:#fff;border:1px solid var(--line)"></div><div style="height:96px;border-radius:16px;background:#fff;border:1px solid var(--line)"></div></div>
+            <div style="height:520px;border-radius:20px;background:#fff;border:1px solid var(--line)"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="overlay">
+        <div class="pd big">
+          <div class="pd-h"><span class="spark"><svg class="i"><use href="#spark"/></svg></span><div><h4>Generate a learning path</h4><p>Review the steps, drop what you don't need, then create.</p></div><svg class="i xx"><use href="#x"/></svg></div>
+          <div class="pd-b">
+            <div class="phead">
+              <div style="min-width:0">
+                <div class="tt">Docker for shipping Next.js apps</div>
+                <div class="dd">From containers to a production Compose setup with Postgres, ending with a deploy of one of your own projects.</div>
+              </div>
+              <div class="sum"><b>~19h</b><span>8 steps · ~4 weeks at 5h/wk</span></div>
+            </div>
+
+            <div class="steps2">
+              <div class="s2 known off"><span class="cb off"></span><span class="n">01</span><div><div class="t">Linux &amp; the terminal basics <span class="knowtag"><svg class="i" style="width:11px;height:11px"><use href="#check"/></svg>you know this · 92%</span></div><div class="meta3"><span class="kind k-read"><svg class="i"><use href="#book"/></svg>Read</span><span class="diff"><i class="on"></i><i></i><i></i><i></i><i></i></span><span class="hrs">1h</span></div></div><div class="ra2"><span><svg class="i"><use href="#pen"/></svg></span></div></div>
+
+              <div class="s2"><span class="cb"><svg class="i"><use href="#check"/></svg></span><span class="n">02</span><div><div class="t">Images, containers and the Dockerfile</div><div class="d">Write a Dockerfile, build and run it, understand layers and caching.</div><div class="meta3"><span class="kind k-read"><svg class="i"><use href="#book"/></svg>Read</span><span class="diff"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span><span class="hrs">2h</span><span class="find"><svg class="i"><use href="#ext"/></svg>docs.docker.com</span></div></div><div class="ra2"><span><svg class="i"><use href="#pen"/></svg></span></div></div>
+
+              <div class="s2 hover"><span class="cb"><svg class="i"><use href="#check"/></svg></span><span class="n">03</span><div><div class="t">Dockerize a Next.js app (standalone output)</div><div class="d">Multi-stage build, small final image, env vars at runtime.</div><div class="meta3"><span class="kind k-build"><svg class="i"><use href="#pen"/></svg>Build</span><span class="diff"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span><span class="hrs">3h</span><span class="find"><svg class="i"><use href="#ext"/></svg>nextjs.org/docs</span></div></div><div class="ra2"><span><svg class="i"><use href="#up"/></svg></span><span><svg class="i"><use href="#down"/></svg></span><span><svg class="i"><use href="#pen"/></svg></span></div></div>
+
+              <div class="s2"><span class="cb"><svg class="i"><use href="#check"/></svg></span><span class="n">04</span><div><div class="t">Docker Compose: app + Postgres</div><div class="meta3"><span class="kind k-prac"><svg class="i"><use href="#check"/></svg>Practice</span><span class="diff"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span><span class="hrs">3h</span><span class="find"><svg class="i"><use href="#search"/></svg>find a resource</span></div></div><div class="ra2"><span><svg class="i"><use href="#pen"/></svg></span></div></div>
+
+              <div class="s2"><span class="cb"><svg class="i"><use href="#check"/></svg></span><span class="n">05</span><div><div class="t">Volumes, networks and health checks</div><div class="meta3"><span class="kind k-watch"><svg class="i"><use href="#play"/></svg>Watch</span><span class="diff"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span><span class="hrs">2h</span><span class="find"><svg class="i"><use href="#search"/></svg>find a resource</span></div></div><div class="ra2"><span><svg class="i"><use href="#pen"/></svg></span></div></div>
+
+              <div class="s2"><span class="cb"><svg class="i"><use href="#check"/></svg></span><span class="n">06</span><div><div class="t">Ship Schoolink with Compose on a VPS</div><div class="d">Your own project, end to end: build, push, run, update.</div><div class="meta3"><span class="kind k-build"><svg class="i"><use href="#pen"/></svg>Build</span><span class="diff"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span><span class="hrs">5h</span></div></div><div class="ra2"><span><svg class="i"><use href="#pen"/></svg></span></div></div>
+            </div>
+            <div class="legend2"><i></i>Drafted by AI. Links are only official docs or a search, never made up. + 2 more steps below</div>
+          </div>
+          <div class="pd-f"><span class="meta"><i></i>3 AI calls · 4.2s</span><span class="btn ghost">Back</span><span class="btn"><svg class="i"><use href="#refresh"/></svg>Regenerate</span><span class="btn primary"><svg class="i"><use href="#check"/></svg>Create path · 7 steps</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="lstates">
+    <div>
+      <div class="st-h"><div class="eyebrow">Step 1</div><b>What to learn <span>· the AI guesses your level from your stack</span></b></div>
+      <div class="pd">
+        <div class="pd-h"><span class="spark"><svg class="i"><use href="#spark"/></svg></span><div><h4>Generate a learning path</h4><p>Tell the AI what you want to learn.</p></div><svg class="i xx"><use href="#x"/></svg></div>
+        <div class="pd-b">
+          <div class="lbl2">What do you want to learn?</div>
+          <div class="in2 focus">Docker, to ship my Next.js apps myself</div>
+          <div class="sugg"><span><svg class="i"><use href="#spark"/></svg>System design for interviews</span><span><svg class="i"><use href="#spark"/></svg>Testing with Playwright</span></div>
+          <div class="g2">
+            <div><div class="lbl2"><i class="dot"></i>Your level<em class="ai">AI 81%</em></div><div class="seg3"><span>New</span><span class="on">Some</span><span>Solid</span></div></div>
+            <div><div class="lbl2">Time per week</div><div class="seg3"><span>2h</span><span class="on">5h</span><span>10h</span></div></div>
+          </div>
+          <div style="margin-top:14px"><div class="lbl2">Goal <em>optional</em></div><div class="in2">Deploy Schoolink without Vercel</div></div>
+        </div>
+        <div class="pd-f"><span class="meta">Uses your stack: Next.js, React, TS…</span><span class="btn ghost">Cancel</span><span class="btn primary"><svg class="i"><use href="#spark"/></svg>Generate</span></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="st-h"><div class="eyebrow">Step 2</div><b>Drafting <span>· outline, then difficulty and what you know</span></b></div>
+      <div class="pd">
+        <div class="pd-h"><span class="spark"><svg class="i"><use href="#spark"/></svg></span><div><h4>Generate a learning path</h4><p>Docker, to ship my Next.js apps myself</p></div><svg class="i xx"><use href="#x"/></svg></div>
+        <div class="pd-b">
+          <div class="gsteps">
+            <div class="gs done"><span class="d2"><svg class="i"><use href="#check"/></svg></span>Drafted 8 steps<span class="ms">2.9s</span></div>
+            <div class="gs run"><span class="d2"></span>Rating difficulty · checking what you already know<span class="ms">…</span></div>
+            <div class="gs wait"><span class="d2"></span>Ready to review</div>
+          </div>
+          <div class="skel2"></div><div class="skel2"></div><div class="skel2"></div><div class="skel2" style="width:70%"></div>
+        </div>
+        <div class="pd-f"><span class="meta">Cancel stops the request</span><span class="btn ghost">Cancel</span></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="st-h"><div class="eyebrow">Existing path</div><b>Fill an empty path <span>· adds steps to it</span></b></div>
+      <div class="emptyd">
+        <div class="ic"><svg class="i"><use href="#spark"/></svg></div>
+        <b>MERN Interview QA has no steps yet</b>
+        <p>Add them yourself, or let the AI draft them from the path's title and description.</p>
+        <div class="row3"><span class="btn"><svg class="i"><use href="#plus"/></svg>Add step</span><span class="btn aib"><svg class="i"><use href="#spark"/></svg>Generate steps</span></div>
+      </div>
+      <div class="warnb"><svg class="i"><use href="#info"/></svg><span>In this mode the footer says <b>Add 8 steps to MERN Interview QA</b>. The path's title and description stay as they are.</span></div>
+    </div>
+
+    <div>
+      <div class="st-h"><div class="eyebrow">Edit a step</div><b>Inline edit <span>· title, type, hours</span></b></div>
+      <div class="pd">
+        <div class="pd-b" style="padding-top:16px">
+          <div class="s2" style="grid-template-columns:18px 26px 1fr;border-color:var(--amber-600);box-shadow:0 0 0 4px #E9B03F26"><span class="cb"><svg class="i"><use href="#check"/></svg></span><span class="n">04</span>
+            <div>
+              <div class="in2 focus" style="min-height:36px;padding:7px 10px">Docker Compose: Next.js + Postgres + Redis</div>
+              <div class="g2" style="margin-top:8px;grid-template-columns:2.4fr 1fr">
+                <div class="seg3"><span>Read</span><span>Watch</span><span class="on">Practice</span><span>Build</span></div>
+                <div class="in2 v" style="min-height:38px;padding:8px 10px;font-family:'JetBrains Mono';font-size:12.5px">3 h</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="pd-f" style="margin-top:14px"><span class="btn ghost">Cancel</span><span class="btn primary">Done</span></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="st-h"><div class="eyebrow">Created</div><b>Saved as a normal path <span>· undo deletes it</span></b></div>
+      <div class="toast"><span class="ok"><svg class="i"><use href="#check"/></svg></span><div><b style="font-weight:500">Path created</b> <span>· 7 steps</span></div><a>Open →</a><span class="u">Undo</span></div>
+      <div class="st-h" style="margin-top:24px"><div class="eyebrow">Too vague</div><b>AI asks for more <span>· no path from one word</span></b></div>
+      <div class="warnb" style="margin-top:0"><svg class="i"><use href="#info"/></svg><span>"<b>AI</b>" is too broad for one path. Try "<b>AI features in a Next.js app</b>" or "<b>Machine learning basics with Python</b>".</span></div>
+    </div>
+
+    <div>
+      <div class="st-h"><div class="eyebrow">Error</div><b>Drafting failed <span>· nothing was created</span></b></div>
+      <div class="pd">
+        <div class="pd-h"><span class="spark"><svg class="i"><use href="#spark"/></svg></span><div><h4>Generate a learning path</h4><p>Something went wrong.</p></div><svg class="i xx"><use href="#x"/></svg></div>
+        <div class="pd-b"><div class="errb"><svg class="i"><use href="#alert"/></svg>The AI didn't answer in time. Your answers are kept; try again.</div></div>
+        <div class="pd-f"><span class="btn ghost">Cancel</span><span class="btn primary">Try again</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="specs">
+    <div class="spec"><b>Where it opens</b>"Generate with AI" next to New path, and "Generate steps" on any path that has no steps yet (like MERN Interview QA).</div>
+    <div class="spec"><b>What the AI decides</b>Your level (from your stack, with %), each step's difficulty (1–5) and whether you already know it. Steps you know start unticked; you can tick them back.</div>
+    <div class="spec"><b>Links</b>Only official docs from a fixed list (docs.docker.com, nextjs.org, react.dev, MDN…). Otherwise "find a resource" opens a search. No made-up URLs.</div>
+    <div class="spec"><b>What gets saved</b>Nothing until you click Create. Then it's a normal path with normal steps. The log records kept, edited and dropped steps.</div>
+  </div>
+</div>
+</body>
+</html>
