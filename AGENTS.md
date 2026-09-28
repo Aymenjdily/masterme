@@ -33,7 +33,7 @@ The standout feature is the integrated job offer system that scrapes LinkedIn an
 - Learning path generator
 - Interview prep (from a pasted job description)
 - Weekly AI review
-- AI blog writer: drafts posts from your real work and saves them to the Sanity blog as unpublished drafts (never publishes)
+- AI blog and project writer: drafts blog posts from your real work, and portfolio projects from a site or GitHub link, saved to Sanity as unpublished drafts (never publishes)
 
 Decisions go through `src/lib/ai/decisions.ts` (Jev-shaped choice/score/noul with confidence; `DECISION_PROVIDER=openai` until Jev signups reopen). Free text goes through `src/lib/ai/openai.ts`. Every call logs an `AiEvent`. Gate actions with `src/lib/ai/confidence.ts`. Keys stay server-only.
 

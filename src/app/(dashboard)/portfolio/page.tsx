@@ -1,6 +1,7 @@
 import { PortfolioLinkList } from "@/components/portfolio/PortfolioLinkList";
 import { SocialAppList } from "@/components/portfolio/SocialAppList";
 import { BlogCard } from "@/components/blog/BlogCard";
+import { ProjectsCard } from "@/components/sanity-projects/ProjectsCard";
 
 export default function PortfolioPage() {
   return (
@@ -12,7 +13,10 @@ export default function PortfolioPage() {
         </p>
       </div>
       <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[1.15fr_1fr]">
-        <PortfolioLinkList />
+        <div className="flex flex-col gap-4">
+          <PortfolioLinkList />
+          <ProjectsCard />
+        </div>
         <div className="flex flex-col gap-4">
           <SocialAppList />
           <BlogCard />
