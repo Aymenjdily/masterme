@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
-import { createPostDraft, sanityConfigured } from "@/lib/sanity";
+import { createPost, sanityConfigured } from "@/lib/sanity";
 import { sectionsToPortableText, slugify } from "@/lib/portable-text";
 
 const bodySchema = z.object({
@@ -9,9 +9,11 @@ const bodySchema = z.object({
   slug: z.string().trim().max(120),
   excerpt: z.string().trim().max(400),
   sections: z.array(z.object({ heading: z.string().max(200), markdown: z.string().max(12000) })).min(1).max(20),
+  /** true: live on the site now. false: unpublished draft. */
+  publish: z.boolean().default(false),
 });
 
-/** Sends a post to Sanity as an unpublished draft. Never publishes. */
+/** Sends a post to Sanity: published (live now) or as an unpublished draft. */
 export async function POST(request: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) {
@@ -26,9 +28,10 @@ export async function POST(request: Request) {
     return Response.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { title, excerpt, sections } = parsed.data;
+  const { title, excerpt, sections, publish } = parsed.data;
   try {
-    const draft = await createPostDraft({
+    const draft = await createPost({
+      publish,
       title,
       slug: slugify(parsed.data.slug || title) || slugify(title),
       excerpt,
@@ -41,7 +44,7 @@ export async function POST(request: Request) {
     const message =
       status === 401 || status === 403
         ? `Sanity rejected the token (${status}). Check SANITY_API_WRITE_TOKEN has Editor rights.`
-        : "Couldn't save the draft to Sanity.";
+        : "Couldn't save the post to Sanity.";
     return Response.json({ error: message }, { status: 502 });
   }
 }

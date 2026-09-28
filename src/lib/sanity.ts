@@ -1,8 +1,8 @@
 import { createClient, type SanityClient } from "@sanity/client";
 import type { PortableBlock } from "@/lib/portable-text";
 
-// Server-only: uses SANITY_API_WRITE_TOKEN. MasterMe only reads posts and creates drafts;
-// it never publishes and never deletes Sanity documents.
+// Server-only: uses SANITY_API_WRITE_TOKEN. MasterMe reads documents and creates new posts and projects,
+// either published (live on the site) or as drafts. It never edits or deletes existing documents.
 
 let client: SanityClient | null = null;
 
@@ -35,6 +35,14 @@ export function studioLink(id: string, type: "post" | "project" = "post") {
   const docId = id.replace(/^drafts\./, "");
   if (!base) return `https://www.sanity.io/manage/project/${process.env.NEXT_PUBLIC_SANITY_PROJECT_ID}`;
   return `${base}/structure/${type};${docId}`;
+}
+
+/** Public page on the portfolio site (the Studio URL without its /studio path), or null if unknown. */
+export function siteLink(type: "post" | "project", slug: string) {
+  const studio = process.env.SANITY_STUDIO_URL?.replace(/\/$/, "");
+  if (!studio) return null;
+  const base = studio.replace(/\/studio$/, "");
+  return `${base}/${type === "post" ? "blog" : "projects"}/${slug}`;
 }
 
 export type BlogPostRow = {
@@ -103,14 +111,15 @@ async function authorId() {
   return sanity().fetch<string | null>(`*[_type == "author" && !(_id in path("drafts.**"))][0]._id`);
 }
 
-/** Creates an unpublished draft post. Returns its id and Studio link. */
-export async function createPostDraft(input: { title: string; slug: string; excerpt: string; body: PortableBlock[] }) {
+/** Creates a post: published (live now) or an unpublished draft. Returns its id and links. */
+export async function createPost(input: { title: string; slug: string; excerpt: string; body: PortableBlock[]; publish: boolean }) {
   const author = await authorId();
   const slug = await uniqueSlug(input.slug, "post");
 
-  // "drafts." lets Sanity generate the id and keeps the document unpublished.
+  // No _id: Sanity generates it. "drafts." keeps it unpublished; without it the post is live.
   const doc = await sanity().create({
-    _id: "drafts.",
+    ...(input.publish ? {} : { _id: "drafts." }),
+    ...(input.publish ? { publishedAt: new Date().toISOString() } : {}),
     _type: "post",
     title: input.title,
     slug: { _type: "slug", current: slug },
@@ -118,7 +127,7 @@ export async function createPostDraft(input: { title: string; slug: string; exce
     ...(author ? { author: { _type: "reference", _ref: author } } : {}),
     body: input.body,
   });
-  return { id: doc._id, slug, studioUrl: studioLink(doc._id) };
+  return { id: doc._id, slug, published: input.publish, studioUrl: studioLink(doc._id), siteUrl: input.publish ? siteLink("post", slug) : null };
 }
 
 /* ---------------- Portfolio projects ---------------- */
@@ -238,17 +247,18 @@ export type ProjectDraftInput = {
   source: string | null;
   publishedAt: string;
   image: { data: Buffer; filename: string; contentType: string } | null;
+  publish: boolean;
 };
 
-/** Creates an unpublished draft project, uploading the cover image as an asset first. */
-export async function createProjectDraft(input: ProjectDraftInput) {
+/** Creates a project, published (live now) or as a draft, uploading the cover image as an asset first. */
+export async function createProject(input: ProjectDraftInput) {
   const [author, slug] = await Promise.all([authorId(), uniqueSlug(input.slug, "project")]);
   const asset = input.image
     ? await sanity().assets.upload("image", input.image.data, { filename: input.image.filename, contentType: input.image.contentType })
     : null;
 
   const doc = await sanity().create({
-    _id: "drafts.",
+    ...(input.publish ? {} : { _id: "drafts." }),
     _type: "project",
     title: input.title,
     slug: { _type: "slug", current: slug },
@@ -269,5 +279,11 @@ export async function createProjectDraft(input: ProjectDraftInput) {
     ...(author ? { author: { _type: "reference", _ref: author } } : {}),
     ...(asset ? { mainImage: { _type: "image", asset: { _type: "reference", _ref: asset._id } } } : {}),
   });
-  return { id: doc._id, slug, studioUrl: studioLink(doc._id, "project") };
+  return {
+    id: doc._id,
+    slug,
+    published: input.publish,
+    studioUrl: studioLink(doc._id, "project"),
+    siteUrl: input.publish ? siteLink("project", slug) : null,
+  };
 }

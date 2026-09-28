@@ -59,7 +59,8 @@ export function ProjectFromLink() {
   const [showLong, setShowLong] = useState(false);
   const [newTech, setNewTech] = useState("");
   const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState<{ studioUrl: string } | null>(null);
+  const [sent, setSent] = useState<{ studioUrl: string; siteUrl: string | null; published: boolean } | null>(null);
+  const [confirming, setConfirming] = useState(false);
   const pending = useRef(new Set<string>());
 
   useEffect(() => {
@@ -102,27 +103,33 @@ export function ProjectFromLink() {
     }
   }
 
-  async function send() {
+  async function send(publish: boolean) {
     if (!draft) return;
     setSending(true);
+    setConfirming(false);
     setError("");
     try {
       const res = await fetch("/api/sanity/projects", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...draft, technologies: draft.technologies.map((t) => t.name), preview: draft.preview ?? "", source: draft.source ?? "", image: draft.image ?? "" }),
+        body: JSON.stringify({ ...draft, technologies: draft.technologies.map((t) => t.name), preview: draft.preview ?? "", source: draft.source ?? "", image: draft.image ?? "", publish }),
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(typeof data?.error === "string" ? data.error : "Couldn't save the project to Sanity.");
       settleAll(JSON.stringify(draft) === aiDraft ? "accepted" : "edited");
-      setSent({ studioUrl: data.studioUrl });
+      setSent({ studioUrl: data.studioUrl, siteUrl: data.siteUrl ?? null, published: !!data.published });
       setStatus("sent");
       queryClient.invalidateQueries({ queryKey: sanityProjectsKey });
-      showToast({
-        title: `${draft.title} saved to Sanity`,
-        detail: data.imageSkipped ? "· draft, add the cover in the Studio" : "· draft",
-        link: { href: data.studioUrl, label: "Open in Studio" },
-      });
+      const cover = data.imageSkipped ? ", add the cover in the Studio" : "";
+      showToast(
+        data.published
+          ? {
+              title: `${draft.title} published`,
+              detail: `· live on your site${cover}`,
+              link: data.siteUrl ? { href: data.siteUrl, label: "View on site" } : { href: data.studioUrl, label: "Open in Studio" },
+            }
+          : { title: `${draft.title} saved to Sanity`, detail: `· draft${cover}`, link: { href: data.studioUrl, label: "Open in Studio" } }
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't save the project to Sanity.");
     } finally {
@@ -152,7 +159,7 @@ export function ProjectFromLink() {
           </Link>
           <h1 className="text-[1.625rem] font-semibold tracking-tight">Add a project from a link</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Fills every field of your Sanity project. It&apos;s saved as a draft; you publish it in the Studio.
+            Fills every field of your Sanity project. Review it, then publish to your site or save it as a draft.
           </p>
         </div>
         <span className="flex items-center gap-1.5 font-mono text-[0.65625rem] font-medium text-success-strong">
@@ -314,7 +321,7 @@ export function ProjectFromLink() {
             <>
               <div className="flex flex-wrap items-center gap-2.5 border-b bg-muted/40 px-4.5 py-3">
                 <span className={cn("rounded-md px-2 py-0.5 font-mono text-[0.65625rem] font-medium tracking-wider whitespace-nowrap uppercase", sent ? "bg-success/15 text-success-strong" : "bg-primary/15 text-warning-strong")}>
-                  {sent ? "In Sanity · draft" : "AI draft"}
+                  {sent ? (sent.published ? "Published" : "In Sanity · draft") : "AI draft"}
                 </span>
                 <span className="font-mono text-[0.6875rem] whitespace-nowrap text-muted-foreground">
                   {result.aiCalls} AI calls · {(result.ms / 1000).toFixed(1)}s
@@ -325,8 +332,26 @@ export function ProjectFromLink() {
                       <Button variant="ghost" onClick={discard} className="h-8.5 cursor-pointer">
                         Add another
                       </Button>
-                      <Button nativeButton={false} render={<a href={sent.studioUrl} target="_blank" rel="noreferrer" />} className="h-8.5 cursor-pointer">
+                      <Button variant="outline" nativeButton={false} render={<a href={sent.studioUrl} target="_blank" rel="noreferrer" />} className="h-8.5 cursor-pointer">
                         Open in Studio
+                      </Button>
+                      {sent.siteUrl && (
+                        <Button nativeButton={false} render={<a href={sent.siteUrl} target="_blank" rel="noreferrer" />} className="h-8.5 cursor-pointer">
+                          View on site
+                        </Button>
+                      )}
+                    </>
+                  ) : confirming ? (
+                    <>
+                      <span className="self-center text-[0.8125rem] font-medium">
+                        Publish now? It goes live on your site{draft.image ? "." : " without a cover image."}
+                      </span>
+                      <Button variant="ghost" onClick={() => setConfirming(false)} className="h-8.5 cursor-pointer">
+                        Cancel
+                      </Button>
+                      <Button onClick={() => send(true)} disabled={sending} className="h-8.5 cursor-pointer">
+                        <Globe />
+                        Publish now
                       </Button>
                     </>
                   ) : (
@@ -334,9 +359,13 @@ export function ProjectFromLink() {
                       <Button variant="ghost" onClick={discard} className="h-8.5 cursor-pointer">
                         Discard
                       </Button>
-                      <Button onClick={send} disabled={sending || !draft.title.trim() || !draft.description.trim()} className="h-8.5 cursor-pointer">
+                      <Button variant="outline" onClick={() => send(false)} disabled={sending || !draft.title.trim() || !draft.description.trim()} className="h-8.5 cursor-pointer">
                         <Send />
-                        {sending ? "Sending…" : "Send to Sanity as draft"}
+                        Save as draft
+                      </Button>
+                      <Button onClick={() => setConfirming(true)} disabled={sending || !draft.title.trim() || !draft.description.trim()} className="h-8.5 cursor-pointer">
+                        <Globe />
+                        {sending ? "Sending…" : "Publish to site"}
                       </Button>
                     </>
                   )}
@@ -348,7 +377,7 @@ export function ProjectFromLink() {
                   <p className="mb-4 flex gap-2.5 rounded-xl border border-primary/35 bg-primary/8 px-3.5 py-2.5 text-[0.8125rem] leading-relaxed">
                     <Info className="mt-0.5 size-4 shrink-0 text-ring" />
                     <span>
-                      <b className="font-semibold">{found.duplicate.title}</b> already uses this site. Update it in the Studio, or send this as a separate draft anyway.
+                      <b className="font-semibold">{found.duplicate.title}</b> already uses this site. Update it in the Studio, or add this as a separate project anyway.
                     </span>
                   </p>
                 )}

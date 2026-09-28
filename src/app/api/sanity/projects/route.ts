@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
-import { createProjectDraft, listProjects, sanityConfigured } from "@/lib/sanity";
+import { createProject, listProjects, sanityConfigured } from "@/lib/sanity";
 import { markdownToBlocks, slugify } from "@/lib/portable-text";
 import { safeFetch } from "@/lib/site-reader";
 import { PROJECT_STATUSES, PROJECT_TYPES } from "@/lib/ai/sanity-project-kinds";
@@ -47,6 +47,8 @@ const bodySchema = z.object({
   source: optionalUrl,
   publishedAt: z.iso.datetime(),
   image: optionalUrl,
+  /** true: live on the site now. false: unpublished draft. */
+  publish: z.boolean().default(false),
 });
 
 /** Downloads the chosen cover image (public URLs only, images only, max 8 MB). */
@@ -60,7 +62,7 @@ async function downloadImage(url: string) {
   return { data, contentType, filename: `cover.${ext}` };
 }
 
-/** Sends a portfolio project to Sanity as an unpublished draft. Never publishes or overwrites. */
+/** Sends a portfolio project to Sanity: published (live now) or as an unpublished draft. Never overwrites. */
 export async function POST(request: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) {
@@ -77,7 +79,7 @@ export async function POST(request: Request) {
   try {
     // A cover that can't be downloaded doesn't block the save; the Studio can add one later.
     const image = p.image ? await downloadImage(p.image).catch(() => null) : null;
-    const draft = await createProjectDraft({
+    const draft = await createProject({
       ...p,
       slug: slugify(p.slug || p.title) || slugify(p.title) || "project",
       body: markdownToBlocks(p.body),

@@ -12,6 +12,7 @@ import {
   Newspaper,
   Pencil,
   RefreshCw,
+  Globe,
   Send,
   Sparkles,
   Trash2,
@@ -70,7 +71,8 @@ export function BlogWriter() {
   const [editing, setEditing] = useState<{ index: number; text: string } | null>(null);
   const [rewriting, setRewriting] = useState<number | null>(null);
   const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState<{ studioUrl: string } | null>(null);
+  const [sent, setSent] = useState<{ studioUrl: string; siteUrl: string | null; published: boolean } | null>(null);
+  const [confirming, setConfirming] = useState(false);
   const pending = useRef(new Set<string>());
 
   const suggest = useQuery({
@@ -166,18 +168,26 @@ export function BlogWriter() {
     }
   }
 
-  async function send() {
+  async function send(publish: boolean) {
     if (!draft) return;
     setSending(true);
+    setConfirming(false);
     try {
-      const result = await postJson<{ id: string; slug: string; studioUrl: string }>("/api/blog/drafts", draft);
+      const result = await postJson<{ id: string; slug: string; studioUrl: string; siteUrl: string | null; published: boolean }>(
+        "/api/blog/drafts",
+        { ...draft, publish }
+      );
       settleAll(JSON.stringify(draft) === aiDraft ? "accepted" : "edited");
-      setSent({ studioUrl: result.studioUrl });
+      setSent({ studioUrl: result.studioUrl, siteUrl: result.siteUrl, published: result.published });
       setStatus("sent");
       queryClient.invalidateQueries({ queryKey: blogPostsKey });
-      showToast({ title: "Draft saved to Sanity", detail: "· not published", link: { href: result.studioUrl, label: "Open in Studio" } });
+      showToast(
+        result.published
+          ? { title: "Post published", detail: "· live on your site", link: { href: result.siteUrl ?? result.studioUrl, label: result.siteUrl ? "View on site" : "Open in Studio" } }
+          : { title: "Draft saved to Sanity", detail: "· not published", link: { href: result.studioUrl, label: "Open in Studio" } }
+      );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Couldn't save the draft to Sanity.");
+      setError(err instanceof Error ? err.message : "Couldn't save the post to Sanity.");
     } finally {
       setSending(false);
     }
@@ -201,7 +211,7 @@ export function BlogWriter() {
             Portfolio · Blog
           </Link>
           <h1 className="text-[1.625rem] font-semibold tracking-tight">Write a post with AI</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Drafts go to your Sanity blog. Nothing is published from here.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Review it, then publish to your site or save it as a draft in Sanity.</p>
         </div>
         <span className="flex items-center gap-1.5 font-mono text-[0.65625rem] font-medium text-success-strong">
           <span className="size-1.5 rounded-full bg-success ring-3 ring-success/20" />
@@ -410,7 +420,7 @@ export function BlogWriter() {
                     sent ? "bg-success/15 text-success-strong" : "bg-primary/15 text-warning-strong"
                   )}
                 >
-                  {sent ? "In Sanity · draft" : "AI draft"}
+                  {sent ? (sent.published ? "Published" : "In Sanity · draft") : "AI draft"}
                 </span>
                 <span className="font-mono text-[0.6875rem] whitespace-nowrap text-muted-foreground">
                   ~{words.toLocaleString()} words · {Math.max(1, Math.round(words / 220))} min read · {draft.sections.length} sections
@@ -422,8 +432,24 @@ export function BlogWriter() {
                       <Button variant="ghost" onClick={discard} className="h-8.5 cursor-pointer">
                         Write another
                       </Button>
-                      <Button nativeButton={false} render={<a href={sent.studioUrl} target="_blank" rel="noreferrer" />} className="h-8.5 cursor-pointer">
+                      <Button variant="outline" nativeButton={false} render={<a href={sent.studioUrl} target="_blank" rel="noreferrer" />} className="h-8.5 cursor-pointer">
                         Open in Studio
+                      </Button>
+                      {sent.siteUrl && (
+                        <Button nativeButton={false} render={<a href={sent.siteUrl} target="_blank" rel="noreferrer" />} className="h-8.5 cursor-pointer">
+                          View on site
+                        </Button>
+                      )}
+                    </>
+                  ) : confirming ? (
+                    <>
+                      <span className="self-center text-[0.8125rem] font-medium">Publish now? It goes live on your site.</span>
+                      <Button variant="ghost" onClick={() => setConfirming(false)} className="h-8.5 cursor-pointer">
+                        Cancel
+                      </Button>
+                      <Button onClick={() => send(true)} disabled={sending} className="h-8.5 cursor-pointer">
+                        <Globe />
+                        Publish now
                       </Button>
                     </>
                   ) : (
@@ -431,9 +457,13 @@ export function BlogWriter() {
                       <Button variant="ghost" onClick={discard} className="h-8.5 cursor-pointer">
                         Discard
                       </Button>
-                      <Button onClick={send} disabled={sending || editing !== null} className="h-8.5 cursor-pointer">
+                      <Button variant="outline" onClick={() => send(false)} disabled={sending || editing !== null} className="h-8.5 cursor-pointer">
                         <Send />
-                        {sending ? "Sending…" : "Send to Sanity as draft"}
+                        Save as draft
+                      </Button>
+                      <Button onClick={() => setConfirming(true)} disabled={sending || editing !== null} className="h-8.5 cursor-pointer">
+                        <Globe />
+                        {sending ? "Sending…" : "Publish to site"}
                       </Button>
                     </>
                   )}
