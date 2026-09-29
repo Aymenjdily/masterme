@@ -42,6 +42,9 @@ export async function GET() {
     ? {
         count: Math.max(0, account.projectCount - linkedNeonIds.size),
         totalUsd: Number(Math.max(0, neonTotalUsd - linkedUsd).toFixed(2)),
+        items: account.projects
+          .filter((p) => !linkedNeonIds.has(p.id))
+          .map((p) => ({ id: p.id, name: p.name, totalUsd: p.totalUsd })),
       }
     : null;
 

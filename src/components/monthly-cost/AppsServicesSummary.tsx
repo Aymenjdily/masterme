@@ -1,7 +1,8 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Folder, Info } from "lucide-react";
+import { useState } from "react";
+import { ChevronRight, Folder, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { queryKeys } from "@/lib/query-keys";
 import { VERCEL_PLAN_MONTHLY_USD } from "@/lib/hosting";
@@ -10,12 +11,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 type SummaryItem = { projectId: string; title: string; totalUsd: number; stale?: boolean };
 
+type OtherNeon = { count: number; totalUsd: number; items: { id: string; name: string; totalUsd: number }[] };
+
 export type AppsSummary = {
   neon: {
     totalUsd: number;
     items: SummaryItem[];
     /** Neon projects in the account that aren't linked to a MasterMe project (null without an account reading) */
-    other: { count: number; totalUsd: number } | null;
+    other: OtherNeon | null;
     accountProjects: number | null;
     linkedProjects: number;
     source: "account" | "linked";
@@ -85,6 +88,54 @@ export function EstimateTag() {
   );
 }
 
+function OtherNeonRow({ other }: { other: OtherNeon }) {
+  const [open, setOpen] = useState(false);
+  const paid = other.items.filter((p) => p.totalUsd >= 0.005);
+  const free = other.items.length - paid.length;
+
+  return (
+    <li className="rounded-xl border border-dashed text-[0.84rem]">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left"
+      >
+        <span className="flex min-w-0 items-center gap-2.5 text-muted-foreground">
+          <ChevronRight className={cn("size-3.75 shrink-0 transition-transform", open && "rotate-90")} />
+          <span className="truncate">Other Neon projects ({other.count})</span>
+        </span>
+        <span className="font-mono text-[0.8125rem] font-medium">
+          {usd(other.totalUsd)} <span className="font-normal text-muted-foreground">/ mo</span>
+        </span>
+      </button>
+      {open && (
+        <ul className="flex flex-col gap-0.5 border-t border-dashed px-3 py-2">
+          {other.items.length === 0 && (
+            <li className="py-1 text-xs text-muted-foreground">Recalculate on Projects to see each project.</li>
+          )}
+          {paid.map((p) => (
+            <li key={p.id} className="flex items-center justify-between gap-3 py-1 pl-6">
+              <span className="flex min-w-0 items-center gap-2.5">
+                <Folder className="size-3.5 shrink-0 text-muted-foreground" />
+                <span className="truncate">{p.name}</span>
+              </span>
+              <span className="shrink-0 font-mono text-[0.78rem]">
+                {usd(p.totalUsd)} <span className="text-muted-foreground">/ mo</span>
+              </span>
+            </li>
+          ))}
+          {free > 0 && (
+            <li className="py-1 pl-6 text-xs text-muted-foreground">
+              {free} {free === 1 ? "project" : "projects"} at {usd(0)}
+            </li>
+          )}
+        </ul>
+      )}
+    </li>
+  );
+}
+
 function ServiceGroup({
   name,
   mark,
@@ -98,7 +149,7 @@ function ServiceGroup({
   other,
 }: {
   subtitle?: string;
-  other?: { count: number; totalUsd: number } | null;
+  other?: OtherNeon | null;
   name: string;
   mark: string;
   markClassName: string;
@@ -147,17 +198,7 @@ function ServiceGroup({
               )}
             </li>
           ))}
-          {other && other.count > 0 && (
-            <li className="flex items-center justify-between rounded-xl border border-dashed px-3 py-2.5 text-[0.84rem]">
-              <span className="flex min-w-0 items-center gap-2.5 text-muted-foreground">
-                <Folder className="size-3.75 shrink-0" />
-                <span className="truncate">Other Neon projects ({other.count})</span>
-              </span>
-              <span className="font-mono text-[0.8125rem] font-medium">
-                {usd(other.totalUsd)} <span className="font-normal text-muted-foreground">/ mo</span>
-              </span>
-            </li>
-          )}
+          {other && other.count > 0 && <OtherNeonRow other={other} />}
         </ul>
       )}
     </div>

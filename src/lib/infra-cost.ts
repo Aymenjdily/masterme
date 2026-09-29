@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { getNeonAccountUsage, getNeonProjectCostEstimate, type NeonAccountUsage } from "@/lib/neon";
+import { getNeonAccountUsage, getNeonProjectCostEstimate, neonProjectNames, type NeonAccountUsage } from "@/lib/neon";
 
 // Daily infra cost, from Neon's own usage (consumption history, all projects, billing period so far):
 // - one row per Neon-linked project per day (InfraCostSnapshot),
@@ -58,7 +58,18 @@ async function recalculate(targets: Target[], accountUserIds: string[]): Promise
   await Promise.all(Array.from({ length: Math.min(CONCURRENCY, targets.length) }, worker));
 
   if (usage) {
+    // Names are only for display. A billed project missing from the list was deleted this period
+    // (Neon still bills the days it existed); if the list can't be read, the Neon id is shown.
+    const names = await neonProjectNames().catch(() => null);
+    const projects: NeonAccountProject[] = [...usage.projects]
+      .map(([id, u]) => ({
+        id,
+        name: names ? (names.get(id) ?? `Deleted project · ${id}`) : id,
+        totalUsd: u.totalUsd,
+      }))
+      .sort((a, b) => b.totalUsd - a.totalUsd);
     const account = {
+      projects,
       periodStart: new Date(usage.periodStart),
       totalUsd: usage.totalUsd,
       computeUsd: usage.computeUsd,
@@ -139,11 +150,14 @@ export async function latestInfraByProject(userId: string): Promise<Map<string, 
   return out;
 }
 
+export type NeonAccountProject = { id: string; name: string; totalUsd: number };
+
 export type NeonAccountReading = {
   totalUsd: number;
   computeUsd: number;
   storageUsd: number;
   projectCount: number;
+  projects: NeonAccountProject[];
   updatedAt: string;
   stale: boolean;
 };
@@ -157,6 +171,7 @@ export async function latestNeonAccount(userId: string): Promise<NeonAccountRead
     computeUsd: row.computeUsd,
     storageUsd: row.storageUsd,
     projectCount: row.projectCount,
+    projects: Array.isArray(row.projects) ? (row.projects as NeonAccountProject[]) : [],
     updatedAt: row.updatedAt.toISOString(),
     stale: row.day.getTime() < todayUtc().getTime(),
   };

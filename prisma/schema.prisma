@@ -336,6 +336,8 @@ model NeonAccountSnapshot {
   computeUsd   Float
   storageUsd   Float
   projectCount Int
+  /// Every Neon project this period: [{ id, name, totalUsd }]
+  projects     Json     @default("[]")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)

@@ -81,11 +81,20 @@ async function cachedEstimateUsd(neonProjectId: string): Promise<number | null> 
   }
 }
 
-export async function listNeonProjects(): Promise<NeonProjectOption[]> {
+async function fetchNeonProjects(): Promise<{ id: string; name: string }[]> {
   const orgId = await getOrgId();
   const query = orgId ? `?org_id=${orgId}&limit=100` : "?limit=100";
   const data = await neonFetch(`/projects${query}`);
-  const projects: { id: string; name: string }[] = data.projects ?? [];
+  return data.projects ?? [];
+}
+
+/** Neon project id → name, for every project in the account. */
+export async function neonProjectNames(): Promise<Map<string, string>> {
+  return new Map((await fetchNeonProjects()).map((p) => [p.id, p.name]));
+}
+
+export async function listNeonProjects(): Promise<NeonProjectOption[]> {
+  const projects = await fetchNeonProjects();
 
   // One account-wide usage call gives exact figures for every project; fall back to per-project estimates.
   const usage = await getNeonAccountUsage().catch(() => null);
