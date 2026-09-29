@@ -1,9 +1,10 @@
 import { prisma } from "@/lib/prisma";
-import { getNeonProjectCostEstimate } from "@/lib/neon";
+import { getNeonAccountUsage, getNeonProjectCostEstimate, type NeonAccountUsage } from "@/lib/neon";
 
-// Daily infra cost: the Neon usage estimate (month to date) for each Neon-linked project,
-// stored once per project per day. Pages read these stored values instead of calling Neon.
-// Vercel stays a flat plan (lib/hosting.ts); linked monthly costs are already in the database.
+// Daily infra cost, from Neon's own usage (consumption history, all projects, billing period so far):
+// - one row per Neon-linked project per day (InfraCostSnapshot),
+// - one row per user per day for the whole Neon account (NeonAccountSnapshot), which matches the Neon bill.
+// Pages read these stored values instead of calling Neon. Vercel stays a flat plan (lib/hosting.ts).
 
 const CONCURRENCY = 4;
 const MIN_INTERVAL_MS = 60 * 1000;
@@ -20,17 +21,26 @@ export type RecalcResult = { updated: number; failed: string[]; at: string };
 
 type Target = { id: string; userId: string; title: string; neonProjectId: string };
 
-async function recalculate(targets: Target[]): Promise<RecalcResult> {
+async function recalculate(targets: Target[], accountUserIds: string[]): Promise<RecalcResult> {
   const day = todayUtc();
   const failed: string[] = [];
   let updated = 0;
   let next = 0;
 
+  // One call for the whole account; if it fails, fall back to the per-project estimate below.
+  let usage: NeonAccountUsage | null = null;
+  try {
+    usage = await getNeonAccountUsage();
+  } catch (err) {
+    console.error("[infra-cost] account usage failed, using per-project estimates:", err);
+  }
+
   async function worker() {
     while (next < targets.length) {
       const p = targets[next++];
       try {
-        const { totalUsd } = await getNeonProjectCostEstimate(p.neonProjectId);
+        const totalUsd =
+          usage?.projects.get(p.neonProjectId)?.totalUsd ?? (await getNeonProjectCostEstimate(p.neonProjectId)).totalUsd;
         await prisma.infraCostSnapshot.upsert({
           where: { projectId_day: { projectId: p.id, day } },
           create: { userId: p.userId, projectId: p.id, neonProjectId: p.neonProjectId, day, neonUsd: totalUsd },
@@ -46,6 +56,25 @@ async function recalculate(targets: Target[]): Promise<RecalcResult> {
   }
 
   await Promise.all(Array.from({ length: Math.min(CONCURRENCY, targets.length) }, worker));
+
+  if (usage) {
+    const account = {
+      periodStart: new Date(usage.periodStart),
+      totalUsd: usage.totalUsd,
+      computeUsd: usage.computeUsd,
+      storageUsd: usage.storageUsd,
+      projectCount: usage.projectCount,
+    };
+    for (const userId of new Set(accountUserIds)) {
+      await prisma.neonAccountSnapshot.upsert({
+        where: { userId_day: { userId, day } },
+        create: { userId, day, ...account },
+        update: account,
+      });
+    }
+  } else {
+    failed.push("Neon account total");
+  }
   return { updated, failed, at: new Date().toISOString() };
 }
 
@@ -57,13 +86,13 @@ const neonProjects = (where: { userId?: string; id?: string }) =>
 
 /** Recalculates every Neon-linked project for one user. */
 export async function recalculateForUser(userId: string) {
-  return recalculate(await neonProjects({ userId }));
+  return recalculate(await neonProjects({ userId }), [userId]);
 }
 
 /** Recalculates one project right after it gets a Neon link. Never throws. */
 export async function recalculateForProject(userId: string, projectId: string) {
   try {
-    return await recalculate(await neonProjects({ userId, id: projectId }));
+    return await recalculate(await neonProjects({ userId, id: projectId }), [userId]);
   } catch (err) {
     console.error("[infra-cost] first reading failed:", err);
     return null;
@@ -72,7 +101,8 @@ export async function recalculateForProject(userId: string, projectId: string) {
 
 /** Daily job: every user's Neon-linked projects. */
 export async function recalculateForAllUsers() {
-  return recalculate(await neonProjects({}));
+  const targets = await neonProjects({});
+  return recalculate(targets, targets.map((t) => t.userId));
 }
 
 /** True when this user recalculated less than a minute ago. */
@@ -107,4 +137,27 @@ export async function latestInfraByProject(userId: string): Promise<Map<string, 
     out.set(s.projectId, { neonUsd: s.neonUsd, updatedAt: s.updatedAt.toISOString(), stale: s.day.getTime() < today });
   }
   return out;
+}
+
+export type NeonAccountReading = {
+  totalUsd: number;
+  computeUsd: number;
+  storageUsd: number;
+  projectCount: number;
+  updatedAt: string;
+  stale: boolean;
+};
+
+/** Latest stored whole-account Neon total for this user, or null if never calculated. */
+export async function latestNeonAccount(userId: string): Promise<NeonAccountReading | null> {
+  const row = await prisma.neonAccountSnapshot.findFirst({ where: { userId }, orderBy: { day: "desc" } });
+  if (!row) return null;
+  return {
+    totalUsd: row.totalUsd,
+    computeUsd: row.computeUsd,
+    storageUsd: row.storageUsd,
+    projectCount: row.projectCount,
+    updatedAt: row.updatedAt.toISOString(),
+    stale: row.day.getTime() < todayUtc().getTime(),
+  };
 }

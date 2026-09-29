@@ -34,6 +34,7 @@ model User {
   monthlyCosts    MonthlyCost[]
   aiEvents        AiEvent[]
   infraCosts      InfraCostSnapshot[]
+  neonAccountCosts NeonAccountSnapshot[]
 
   @@map("user")
 }
@@ -323,4 +324,21 @@ model InfraCostSnapshot {
 
   @@unique([projectId, day])
   @@index([userId, day])
+}
+
+/// Whole Neon account cost for the billing period so far (all projects), one row per user per day.
+model NeonAccountSnapshot {
+  id           String   @id @default(cuid())
+  userId       String
+  day          DateTime @db.Date
+  periodStart  DateTime
+  totalUsd     Float
+  computeUsd   Float
+  storageUsd   Float
+  projectCount Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, day])
 }

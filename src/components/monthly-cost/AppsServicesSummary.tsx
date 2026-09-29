@@ -11,7 +11,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 type SummaryItem = { projectId: string; title: string; totalUsd: number; stale?: boolean };
 
 export type AppsSummary = {
-  neon: { totalUsd: number; items: SummaryItem[] };
+  neon: {
+    totalUsd: number;
+    items: SummaryItem[];
+    /** Neon projects in the account that aren't linked to a MasterMe project (null without an account reading) */
+    other: { count: number; totalUsd: number } | null;
+    accountProjects: number | null;
+    linkedProjects: number;
+    source: "account" | "linked";
+  };
   vercel: { totalUsd: number; items: SummaryItem[] };
   totalUsd: number;
   /** When the newest stored Neon reading was taken (daily job or Recalculate) */
@@ -86,7 +94,11 @@ function ServiceGroup({
   items,
   emptyText,
   sharedPlan,
+  subtitle,
+  other,
 }: {
+  subtitle?: string;
+  other?: { count: number; totalUsd: number } | null;
   name: string;
   mark: string;
   markClassName: string;
@@ -112,7 +124,8 @@ function ServiceGroup({
       {sharedPlan && items.length > 0 && (
         <p className="-mt-1 mb-2 text-xs text-muted-foreground">{sharedPlan}</p>
       )}
-      {items.length === 0 ? (
+      {subtitle && <p className="-mt-1 mb-2 text-xs text-muted-foreground">{subtitle}</p>}
+      {items.length === 0 && !other?.count ? (
         <p className="rounded-xl border border-dashed border-input px-3 py-2.5 text-xs text-muted-foreground">{emptyText}</p>
       ) : (
         <ul className="flex flex-col gap-1.5">
@@ -134,6 +147,17 @@ function ServiceGroup({
               )}
             </li>
           ))}
+          {other && other.count > 0 && (
+            <li className="flex items-center justify-between rounded-xl border border-dashed px-3 py-2.5 text-[0.84rem]">
+              <span className="flex min-w-0 items-center gap-2.5 text-muted-foreground">
+                <Folder className="size-3.75 shrink-0" />
+                <span className="truncate">Other Neon projects ({other.count})</span>
+              </span>
+              <span className="font-mono text-[0.8125rem] font-medium">
+                {usd(other.totalUsd)} <span className="font-normal text-muted-foreground">/ mo</span>
+              </span>
+            </li>
+          )}
         </ul>
       )}
     </div>
@@ -174,12 +198,18 @@ export function AppsServicesSummary() {
       {data && (
         <>
           <ServiceGroup
-            name="Neon"
+            name={data.neon.source === "account" ? "Neon account" : "Neon"}
             mark="N"
             markClassName="bg-success/15 text-success-strong"
-            estimate
+            estimate={data.neon.source !== "account"}
             total={data.neon.totalUsd}
             items={data.neon.items}
+            other={data.neon.other}
+            subtitle={
+              data.neon.accountProjects !== null
+                ? `${data.neon.accountProjects} projects · ${data.neon.linkedProjects} linked · this billing period`
+                : undefined
+            }
             emptyText="No projects linked to a Neon project."
           />
           <ServiceGroup
@@ -191,6 +221,12 @@ export function AppsServicesSummary() {
             emptyText="No projects marked as hosted on Vercel."
             sharedPlan={`One flat plan · ${usd(VERCEL_PLAN_MONTHLY_USD)} / mo covers ${data.vercel.items.length === 1 ? "this project" : `all ${data.vercel.items.length} projects`}`}
           />
+          <div className="flex items-center justify-between border-t pt-3">
+            <span className="text-[0.84rem] font-semibold">Total apps &amp; services</span>
+            <span className="font-mono text-[0.9375rem] font-semibold">
+              {usd(data.totalUsd)} <span className="text-xs font-normal text-muted-foreground">/ mo</span>
+            </span>
+          </div>
         </>
       )}
 

@@ -7,6 +7,9 @@ const COMPUTE_USD_PER_CU_HOUR = 0.106;
 const STORAGE_USD_PER_GB_MONTH = 0.35;
 const TRANSFER_USD_PER_GB = 0.1;
 const TRANSFER_FREE_GB = 500;
+// Instant-restore (history) storage, Launch plan.
+const RESTORE_USD_PER_GB_MONTH = 0.2;
+const GIB = 1024 ** 3;
 
 /** A Neon project for pickers, with its estimated cost so far this billing period (null if unknown). */
 export type NeonProjectOption = { id: string; name: string; estimateUsd: number | null };
@@ -84,6 +87,12 @@ export async function listNeonProjects(): Promise<NeonProjectOption[]> {
   const data = await neonFetch(`/projects${query}`);
   const projects: { id: string; name: string }[] = data.projects ?? [];
 
+  // One account-wide usage call gives exact figures for every project; fall back to per-project estimates.
+  const usage = await getNeonAccountUsage().catch(() => null);
+  if (usage) {
+    return projects.map((p) => ({ id: p.id, name: p.name, estimateUsd: usage.projects.get(p.id)?.totalUsd ?? 0 }));
+  }
+
   const results: NeonProjectOption[] = new Array(projects.length);
   let next = 0;
   async function worker() {
@@ -129,5 +138,108 @@ function estimateFromUsage(project: NeonUsageFields): NeonCostEstimate {
     transferUsd: Number(transferUsd.toFixed(2)),
     periodStart: project.consumption_period_start,
     periodEnd: project.consumption_period_end,
+  };
+}
+
+/* ---------------- Account-wide usage (all projects) ---------------- */
+
+export type NeonProjectUsage = { computeUsd: number; storageUsd: number; restoreUsd: number; totalUsd: number };
+
+export type NeonAccountUsage = {
+  periodStart: string;
+  totalUsd: number;
+  computeUsd: number;
+  storageUsd: number;
+  restoreUsd: number;
+  transferUsd: number;
+  projectCount: number;
+  projects: Map<string, NeonProjectUsage>;
+};
+
+type ConsumptionResponse = {
+  projects: {
+    project_id: string;
+    periods: {
+      period_start: string;
+      consumption: { metrics: { metric_name: string; value: number }[] }[];
+    }[];
+  }[];
+  pagination?: { cursor?: string } | null;
+};
+
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
+/**
+ * Real usage for every project in the account this billing period, from Neon's consumption history (v2),
+ * priced with the Launch plan rates above. Matches the Neon dashboard to within a few cents.
+ */
+export async function getNeonAccountUsage(): Promise<NeonAccountUsage> {
+  const orgId = await getOrgId();
+  const now = new Date();
+  const from = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  const to = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
+  const metrics = [
+    "compute_unit_seconds",
+    "root_branch_bytes_month",
+    "child_branch_bytes_month",
+    "instant_restore_bytes_month",
+    "public_network_transfer_bytes",
+  ].join(",");
+
+  const totals = new Map<string, Record<string, number>>();
+  let periodStart = from.toISOString();
+  let cursor: string | undefined;
+  for (let page = 0; page < 10; page++) {
+    const params = new URLSearchParams({
+      from: from.toISOString(),
+      to: to.toISOString(),
+      granularity: "daily",
+      limit: "100",
+      metrics,
+      ...(orgId ? { org_id: orgId } : {}),
+      ...(cursor ? { cursor } : {}),
+    });
+    const data = (await neonFetch(`/consumption_history/v2/projects?${params}`)) as ConsumptionResponse;
+    for (const project of data.projects ?? []) {
+      const sums = totals.get(project.project_id) ?? {};
+      for (const period of project.periods) {
+        periodStart = period.period_start ?? periodStart;
+        for (const day of period.consumption) {
+          for (const m of day.metrics) sums[m.metric_name] = (sums[m.metric_name] ?? 0) + m.value;
+        }
+      }
+      totals.set(project.project_id, sums);
+    }
+    cursor = data.pagination?.cursor;
+    if (!cursor || (data.projects ?? []).length < 100) break;
+  }
+
+  const projects = new Map<string, NeonProjectUsage>();
+  let computeUsd = 0;
+  let storageUsd = 0;
+  let restoreUsd = 0;
+  let transferGb = 0;
+  for (const [id, m] of totals) {
+    const compute = ((m.compute_unit_seconds ?? 0) / 3600) * COMPUTE_USD_PER_CU_HOUR;
+    const storage = (((m.root_branch_bytes_month ?? 0) + (m.child_branch_bytes_month ?? 0)) / GIB) * STORAGE_USD_PER_GB_MONTH;
+    const restore = ((m.instant_restore_bytes_month ?? 0) / GIB) * RESTORE_USD_PER_GB_MONTH;
+    transferGb += (m.public_network_transfer_bytes ?? 0) / 1_000_000_000;
+    computeUsd += compute;
+    storageUsd += storage;
+    restoreUsd += restore;
+    projects.set(id, { computeUsd: round2(compute), storageUsd: round2(storage), restoreUsd: round2(restore), totalUsd: round2(compute + storage + restore) });
+  }
+  // The free transfer allowance applies to the whole account.
+  const transferUsd = Math.max(0, transferGb - TRANSFER_FREE_GB) * TRANSFER_USD_PER_GB;
+
+  return {
+    periodStart,
+    totalUsd: round2(computeUsd + storageUsd + restoreUsd + transferUsd),
+    computeUsd: round2(computeUsd),
+    storageUsd: round2(storageUsd + restoreUsd),
+    restoreUsd: round2(restoreUsd),
+    transferUsd: round2(transferUsd),
+    projectCount: totals.size,
+    projects,
   };
 }
