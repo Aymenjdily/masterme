@@ -34,6 +34,8 @@ export type NavItem = {
   icon?: LucideIcon;
   href?: string;
   children?: NavItem[];
+  /** Small red count after the title (hidden when 0) */
+  badge?: number;
 };
 
 export function NavMain({ items }: { items: NavItem[] }) {
@@ -189,6 +191,14 @@ function NavMainItem({
             >
               {item.icon && <item.icon />}
               {item.title}
+              {!!item.badge && (
+                <span
+                  aria-label={`${item.badge} new`}
+                  className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 font-mono text-[0.6875rem] font-semibold text-white"
+                >
+                  {item.badge > 99 ? "99+" : item.badge}
+                </span>
+              )}
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

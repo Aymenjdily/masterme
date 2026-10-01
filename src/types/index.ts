@@ -102,6 +102,10 @@ export interface Project {
   previewImageUrl?: string;
   neonProjectId?: string | null;
   vercelHosting?: boolean;
+  vercelProjectId?: string | null;
+  vercelProjectName?: string | null;
+  /** Errors and warnings over the last 24 h (Logs) */
+  logs?: { errors: number; warnings: number };
   billings: ProjectBilling[];
   monthlyCosts: MonthlyCost[];
   /** Latest stored Neon cost (daily job or Recalculate); null when not linked or not calculated yet */

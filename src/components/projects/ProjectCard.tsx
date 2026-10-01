@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Coins, ExternalLink, Pencil, RefreshCw, Trash2 } from "lucide-react";
+import { Coins, ExternalLink, Link2, Pencil, RefreshCw, SquareTerminal, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { queryKeys } from "@/lib/query-keys";
 import type { Project } from "@/types";
@@ -31,6 +32,53 @@ function MoneyCell({ label, value, tone }: { label: string; value: string | null
         {value ?? "—"}
       </p>
     </div>
+  );
+}
+
+const logsButtonClass =
+  "inline-flex h-7.5 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg px-2.5 font-mono text-xs font-medium transition-colors [&_svg]:size-3.25";
+
+/** Opens the project's logs, or the edit popup to link a Vercel project first. */
+function LogsButton({ project, onLink }: { project: Project; onLink: () => void }) {
+  if (!project.vercelProjectId) {
+    return (
+      <button
+        type="button"
+        onClick={onLink}
+        title="Link a Vercel project to see its logs"
+        className={cn(logsButtonClass, "border border-dashed border-input text-muted-foreground hover:text-foreground")}
+      >
+        <Link2 />
+        Link Vercel
+      </button>
+    );
+  }
+  const errors = project.logs?.errors ?? 0;
+  const warnings = project.logs?.warnings ?? 0;
+  const tone = errors > 0 ? "error" : warnings > 0 ? "warn" : "quiet";
+  const label =
+    tone === "error"
+      ? `${errors} ${errors === 1 ? "error" : "errors"}`
+      : tone === "warn"
+        ? `${warnings} ${warnings === 1 ? "warning" : "warnings"}`
+        : "Quiet";
+  return (
+    <Link
+      href={`/logs?project=${project.id}`}
+      title="Errors and warnings in the last 24 h"
+      className={cn(logsButtonClass, "bg-terminal text-terminal-foreground hover:bg-terminal/90")}
+    >
+      <span
+        className={cn(
+          "size-1.5 rounded-full",
+          tone === "error" && "bg-terminal-error ring-3 ring-terminal-error/20",
+          tone === "warn" && "bg-terminal-warn ring-3 ring-terminal-warn/20",
+          tone === "quiet" && "bg-terminal-ok ring-3 ring-terminal-ok/20"
+        )}
+      />
+      <SquareTerminal />
+      {label}
+    </Link>
   );
 }
 
@@ -168,16 +216,19 @@ export function ProjectCard({
                 {project.infra.stale && " · stale"}
               </span>
             )}
-            {project.vercelHosting && (
+            {project.vercelHosting && !project.vercelProjectId && (
               <span className="inline-flex h-6 items-center gap-1 rounded-[7px] bg-muted px-2 font-mono text-[0.6875rem] text-muted-foreground">
                 Vercel <span className="font-medium text-foreground">shared</span>
               </span>
             )}
           </div>
-          <Button size="sm" variant="outline" onClick={onIncome} className="shrink-0 cursor-pointer">
-            <Coins />
-            Income · {project.billings.length}
-          </Button>
+          <div className="flex shrink-0 items-center gap-1.5">
+            <LogsButton project={project} onLink={onEdit} />
+            <Button size="sm" variant="outline" onClick={onIncome} className="shrink-0 cursor-pointer">
+              <Coins />
+              Income · {project.billings.length}
+            </Button>
+          </div>
         </div>
       </div>
     </li>

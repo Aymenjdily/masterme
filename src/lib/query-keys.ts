@@ -12,4 +12,6 @@ export const queryKeys = {
   appsSummary: ["apps-services-summary"] as const,
   learningPaths: ["learning-paths"] as const,
   notificationsSummary: ["notifications-summary"] as const,
+  logsUnseen: ["logs-unseen"] as const,
+  projectLogs: (project: string, range: string) => ["project-logs", project, range] as const,
 };

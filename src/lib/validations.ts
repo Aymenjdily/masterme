@@ -163,6 +163,8 @@ export const projectSchema = z.object({
   url: z.string().url().optional(),
   neonProjectId: z.string().nullable().optional(),
   vercelHosting: z.boolean().optional().default(false),
+  // The name is looked up on the server; only the id comes from the form.
+  vercelProjectId: z.string().nullable().optional(),
 });
 
 // Used for PATCH: no `.default()`, so omitted fields stay omitted.
@@ -175,6 +177,7 @@ export const projectUpdateSchema = z.object({
   url: z.string().url().optional(),
   neonProjectId: z.string().nullable().optional(),
   vercelHosting: z.boolean().optional(),
+  vercelProjectId: z.string().nullable().optional(),
   // Re-fetch the preview image even when the URL didn't change.
   refreshPreview: z.boolean().optional(),
 });

@@ -6,10 +6,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { queryKeys } from "@/lib/query-keys";
-import { VERCEL_PLAN_MONTHLY_USD } from "@/lib/hosting";
 import type { Project } from "@/types";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { SegmentedControl } from "@/components/ui-patterns/dialogs";
@@ -24,8 +22,11 @@ const formSchema = z.object({
   url: z.union([z.literal(""), z.string().trim().url("Enter a full link starting with https://")]),
   description: z.string(),
   neonProjectId: z.string(),
-  vercelHosting: z.boolean(),
+  // "" = not on Vercel, HOSTED_NOT_LINKED = on Vercel without a linked project, otherwise a Vercel project id.
+  vercel: z.string(),
 });
+
+const HOSTED_NOT_LINKED = "__hosted";
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -48,6 +49,12 @@ async function send(url: string, method: string, body: unknown) {
     body: JSON.stringify(body),
   });
   if (!res.ok) throw new Error(`${method} ${url} failed`);
+  return res.json();
+}
+
+async function fetchVercelProjects(): Promise<{ projects: { id: string; name: string }[]; configured: boolean }> {
+  const res = await fetch("/api/vercel/projects");
+  if (!res.ok) throw new Error("Failed to load Vercel projects");
   return res.json();
 }
 
@@ -82,7 +89,7 @@ export function ProjectForm({ project, onDone }: { project?: Project; onDone: ()
       url: project?.url ?? "",
       description: project?.description ?? "",
       neonProjectId: project?.neonProjectId ?? "",
-      vercelHosting: project?.vercelHosting ?? false,
+      vercel: project?.vercelProjectId ?? (project?.vercelHosting ? HOSTED_NOT_LINKED : ""),
     },
   });
   const type = useWatch({ control, name: "type" });
@@ -93,6 +100,18 @@ export function ProjectForm({ project, onDone }: { project?: Project; onDone: ()
     staleTime: 5 * 60 * 1000,
   });
   const neonProjects = neonData?.projects ?? [];
+
+  const { data: vercelData } = useQuery({
+    queryKey: ["vercel-projects"],
+    queryFn: fetchVercelProjects,
+    staleTime: 10 * 60 * 1000,
+  });
+  const vercelProjects = vercelData?.projects ?? [];
+  // Keep the saved link selectable even before the list loads.
+  const savedVercel =
+    project?.vercelProjectId && !vercelProjects.some((p) => p.id === project.vercelProjectId)
+      ? { id: project.vercelProjectId, name: project.vercelProjectName ?? project.vercelProjectId }
+      : null;
 
   // First income (new projects only) becomes billing records after the project is created.
   const [buildCost, setBuildCost] = useState("");
@@ -109,7 +128,8 @@ export function ProjectForm({ project, onDone }: { project?: Project; onDone: ()
         url: values.url.trim() || undefined,
         description: values.description.trim() || undefined,
         neonProjectId: values.neonProjectId || null,
-        vercelHosting: values.vercelHosting,
+        vercelHosting: values.vercel !== "",
+        vercelProjectId: values.vercel && values.vercel !== HOSTED_NOT_LINKED ? values.vercel : null,
       };
       const saved = project
         ? await send(`/api/projects/${project.id}`, "PATCH", { ...body, refreshPreview: !project.previewImageUrl })
@@ -196,21 +216,25 @@ export function ProjectForm({ project, onDone }: { project?: Project; onDone: ()
             ))}
           </select>
         </Field>
-        <Field orientation="horizontal" className="items-center self-end sm:h-10">
-          <Controller
-            control={control}
-            name="vercelHosting"
-            render={({ field }) => (
-              <Checkbox id="project-vercel" checked={field.value} onCheckedChange={field.onChange} />
-            )}
-          />
-          <FieldLabel htmlFor="project-vercel" className="font-normal">
-            <span>
-              Hosted on Vercel{" "}
-              <span className="text-muted-foreground">(shared ${VERCEL_PLAN_MONTHLY_USD}/mo plan)</span>
-            </span>
+        <Field>
+          <FieldLabel htmlFor="project-vercel">
+            Vercel project <span className="font-normal text-muted-foreground">(optional)</span>
           </FieldLabel>
+          <select id="project-vercel" className={`${selectClassName} font-mono`} {...register("vercel")}>
+            <option value="">Not on Vercel</option>
+            <option value={HOSTED_NOT_LINKED}>On Vercel, not linked</option>
+            {savedVercel && <option value={savedVercel.id}>{savedVercel.name}</option>}
+            {vercelProjects.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
         </Field>
+        <p className="-mt-2 text-xs text-muted-foreground sm:col-span-2">
+          Linking a Vercel project counts it under your Vercel plan and shows its logs.
+          {vercelData && !vercelData.configured && " Add VERCEL_API_TOKEN to list your Vercel projects."}
+        </p>
 
         {!project && (
           <>

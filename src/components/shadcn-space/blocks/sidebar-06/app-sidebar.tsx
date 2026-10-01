@@ -19,6 +19,7 @@ import {
   FolderKanban,
   Newspaper,
   Settings,
+  SquareTerminal,
   Wallet,
 } from "lucide-react";
 
@@ -38,6 +39,7 @@ export const navData: NavItem[] = [
   { label: "Career & Business", isSection: true },
   { title: "Jobs", icon: Briefcase, href: "/jobs" },
   { title: "Projects", icon: FolderKanban, href: "/projects" },
+  { title: "Logs", icon: SquareTerminal, href: "/logs" },
   { title: "Tech News", icon: Newspaper, href: "/news" },
 
   // Account Section
@@ -45,7 +47,10 @@ export const navData: NavItem[] = [
   { title: "Settings", icon: Settings, href: "/settings" },
 ];
 
-export function AppSidebar() {
+/** `badges` maps an item's href to a small red count (e.g. unseen log errors). */
+export function AppSidebar({ badges }: { badges?: Record<string, number | undefined> }) {
+  const items = badges ? navData.map((item) => (item.href && badges[item.href] ? { ...item, badge: badges[item.href] } : item)) : navData;
+
   return (
     <Sidebar
       variant="floating"
@@ -67,7 +72,7 @@ export function AppSidebar() {
         <SidebarContent className="overflow-hidden">
           <ScrollArea className="h-[calc(100vh-100px)]">
             <div className="px-4">
-              <NavMain items={navData} />
+              <NavMain items={items} />
             </div>
           </ScrollArea>
         </SidebarContent>

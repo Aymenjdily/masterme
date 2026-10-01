@@ -19,22 +19,25 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  sessions      Session[]
-  accounts      Account[]
+  sessions Session[]
+  accounts Account[]
 
-  portfolioLinks  PortfolioLink[]
-  socialApps      SocialApp[]
-  learningPaths   LearningPath[]
-  timelines       Timeline[]
-  jobOffers       JobOffer[]
-  jobApplications JobApplication[]
+  portfolioLinks    PortfolioLink[]
+  socialApps        SocialApp[]
+  learningPaths     LearningPath[]
+  timelines         Timeline[]
+  jobOffers         JobOffer[]
+  jobApplications   JobApplication[]
   recruiterContacts RecruiterContact[]
-  projects        Project[]
-  techNews        TechNews[]
-  monthlyCosts    MonthlyCost[]
-  aiEvents        AiEvent[]
-  infraCosts      InfraCostSnapshot[]
-  neonAccountCosts NeonAccountSnapshot[]
+  projects          Project[]
+  techNews          TechNews[]
+  monthlyCosts      MonthlyCost[]
+  aiEvents          AiEvent[]
+  infraCosts        InfraCostSnapshot[]
+  neonAccountCosts  NeonAccountSnapshot[]
+  projectLogs       ProjectLog[]
+  /// When the user last opened /logs (drives the unseen-errors badge)
+  logsSeenAt        DateTime?
 
   @@map("user")
 }
@@ -75,12 +78,12 @@ model Account {
 }
 
 model Verification {
-  id         String    @id @default(cuid())
+  id         String   @id @default(cuid())
   identifier String
   value      String
   expiresAt  DateTime
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@map("verification")
 }
@@ -203,56 +206,59 @@ model JobApplication {
 }
 
 model RecruiterContact {
-  id             String    @id @default(cuid())
-  userId         String
-  name           String
-  email          String?
-  phone          String?
-  company        String?
-  linkedinUrl    String?
-  notes          String?
+  id              String    @id @default(cuid())
+  userId          String
+  name            String
+  email           String?
+  phone           String?
+  company         String?
+  linkedinUrl     String?
+  notes           String?
   lastContactedAt DateTime?
   /// Set when the conversation is ended; reminders stop while it's set
-  endedAt        DateTime?
+  endedAt         DateTime?
   /// offer | application | passed | not_interested | no_reply | other
-  endReason      String?
-  endNote        String?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endReason       String?
+  endNote         String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Project {
-  id               String           @id @default(cuid())
-  userId           String
-  title            String
-  description      String?
-  type             String
-  status           String           @default("active")
-  clientName       String?
-  url              String?
-  previewImageUrl  String?
-  neonProjectId    String?
-  vercelHosting    Boolean          @default(false)
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
-  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  billings         ProjectBilling[]
-  monthlyCosts     MonthlyCost[]
-  infraCosts       InfraCostSnapshot[]
+  id                String              @id @default(cuid())
+  userId            String
+  title             String
+  description       String?
+  type              String
+  status            String              @default("active")
+  clientName        String?
+  url               String?
+  previewImageUrl   String?
+  neonProjectId     String?
+  vercelHosting     Boolean             @default(false)
+  vercelProjectId   String?
+  vercelProjectName String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  billings          ProjectBilling[]
+  monthlyCosts      MonthlyCost[]
+  infraCosts        InfraCostSnapshot[]
+  logs              ProjectLog[]
 }
 
 model ProjectBilling {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   projectId   String
   billingType String
   amount      Float
-  currency    String   @default("MAD")
+  currency    String    @default("MAD")
   description String?
   invoiceDate DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 model TechNews {
@@ -343,4 +349,34 @@ model NeonAccountSnapshot {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, day])
+}
+
+/// Errors, warnings and builds from a project's Vercel deployment (see lib/project-logs.ts).
+/// The same line on the same day is grouped into one row with a count.
+model ProjectLog {
+  id            String   @id @default(cuid())
+  userId        String
+  projectId     String
+  level         String // error | warn | build
+  fingerprint   String
+  method        String?
+  path          String?
+  status        Int?
+  message       String
+  source        String?
+  domain        String?
+  deploymentId  String?
+  count         Int      @default(1)
+  firstAt       DateTime
+  lastAt        DateTime
+  buildState    String?
+  commitMessage String?
+  commitSha     String?
+  branch        String?
+  durationS     Int?
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, fingerprint])
+  @@index([userId, lastAt])
 }

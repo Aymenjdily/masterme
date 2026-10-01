@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { projectSchema } from "@/lib/validations";
 import { fetchPreviewImage } from "@/lib/og-preview";
 import { latestInfraByProject, recalculateForProject } from "@/lib/infra-cost";
+import { logCountsByProject } from "@/lib/project-logs";
+import { resolveVercelLink } from "@/lib/vercel-link";
 
 export async function GET() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -11,16 +13,23 @@ export async function GET() {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const [projects, infra] = await Promise.all([
+  const [projects, infra, logs] = await Promise.all([
     prisma.project.findMany({
       where: { userId: session.user.id },
       include: { billings: true, monthlyCosts: true },
       orderBy: { createdAt: "desc" },
     }),
     latestInfraByProject(session.user.id),
+    logCountsByProject(session.user.id),
   ]);
 
-  return Response.json(projects.map((p) => ({ ...p, infra: infra.get(p.id) ?? null })));
+  return Response.json(
+    projects.map((p) => ({
+      ...p,
+      infra: infra.get(p.id) ?? null,
+      logs: logs.get(p.id) ?? { errors: 0, warnings: 0 },
+    }))
+  );
 }
 
 export async function POST(request: Request) {
@@ -35,7 +44,11 @@ export async function POST(request: Request) {
     return Response.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { url, neonProjectId, ...rest } = parsed.data;
+  const { url, neonProjectId, vercelProjectId, ...rest } = parsed.data;
+  const vercel = await resolveVercelLink(vercelProjectId);
+  if (vercel === "invalid") {
+    return Response.json({ error: "Unknown Vercel project" }, { status: 400 });
+  }
   const previewImageUrl = url ? await fetchPreviewImage(url) : null;
 
   const project = await prisma.project.create({
@@ -44,6 +57,7 @@ export async function POST(request: Request) {
       url,
       previewImageUrl,
       neonProjectId: neonProjectId || null,
+      ...vercel,
       userId: session.user.id,
     },
     include: { billings: true, monthlyCosts: true },

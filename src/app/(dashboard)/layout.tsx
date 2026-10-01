@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/shadcn-space/blocks/sidebar-06/app-sidebar";
+import { DashboardSidebar } from "@/components/layout/dashboard-sidebar";
 import { AppHeader } from "@/components/layout/app-header";
 import { Providers } from "./providers";
 
@@ -25,7 +25,7 @@ export default async function DashboardLayout({
         className="bg-background p-4"
         style={{ "--sidebar-width": "300px" } as React.CSSProperties}
       >
-        <AppSidebar />
+        <DashboardSidebar />
         <div className="flex flex-1 flex-col gap-4">
           <AppHeader
             user={{

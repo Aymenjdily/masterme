@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { projectUpdateSchema } from "@/lib/validations";
 import { fetchPreviewImage } from "@/lib/og-preview";
 import { recalculateForProject } from "@/lib/infra-cost";
+import { resolveVercelLink } from "@/lib/vercel-link";
 
 export async function PATCH(
   request: Request,
@@ -28,7 +29,11 @@ export async function PATCH(
     return Response.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { url, neonProjectId, refreshPreview, ...rest } = parsed.data;
+  const { url, neonProjectId, vercelProjectId, refreshPreview, ...rest } = parsed.data;
+  const vercel = await resolveVercelLink(vercelProjectId);
+  if (vercel === "invalid") {
+    return Response.json({ error: "Unknown Vercel project" }, { status: 400 });
+  }
   const urlChanged = url !== undefined && url !== existing.url;
   const effectiveUrl = url !== undefined ? url : existing.url;
   const previewImageUrl =
@@ -45,6 +50,7 @@ export async function PATCH(
       ...(url !== undefined ? { url } : {}),
       ...(previewImageUrl !== undefined ? { previewImageUrl } : {}),
       ...(neonProjectId !== undefined ? { neonProjectId: neonProjectId || null } : {}),
+      ...vercel,
     },
     include: { billings: true, monthlyCosts: true },
   });
