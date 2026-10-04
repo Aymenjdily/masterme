@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MasterMe Notes Design</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F6F4EF;--surface:#FFFFFF;--sunken:#EFECE5;--line:#1B1E2914;--line-strong:#1B1E2926;
+  --fg:#1B1E29;--muted:#5E6578;--ink:#0E0F14;
+  --amber:#E9B03F;--amber-600:#C98A1E;--amber-text:#9A6710;
+  --sky-text:#2F6FB8;--olive-text:#4E6B35;--clay-text:#B8432F;--violet-text:#7A4FC0;
+  --shadow:0 1px 2px #1B1E290A,0 4px 16px #1B1E290D;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:1600px;background:#E9E6DF;color:var(--fg);font-family:Poppins,sans-serif;-webkit-font-smoothing:antialiased}
+.mono{font-family:"JetBrains Mono",monospace}
+svg.i{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.board{padding:48px 80px 64px}
+.eyebrow{font:500 11px "JetBrains Mono";letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.board-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:24px}
+.board-head h1{font:600 28px Poppins;letter-spacing:-.02em;margin-top:6px}
+.board-head p{font:12px "JetBrains Mono";color:var(--muted);text-align:right;line-height:1.7}
+.frame{border-radius:18px;overflow:hidden;box-shadow:0 30px 80px #1B1E2926;border:1px solid var(--line-strong)}
+.chrome{height:36px;background:#FBFAF7;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;padding:0 14px}
+.chrome i{width:11px;height:11px;border-radius:50%;background:#D8D4CB;display:block}
+.chrome .url{margin-left:18px;height:22px;flex:0 0 360px;border-radius:6px;background:var(--sunken);font:11px "JetBrains Mono";color:var(--muted);display:flex;align-items:center;padding:0 10px}
+
+/* app shell (matches the built app) */
+.app{height:900px;background:var(--bg);display:grid;grid-template-columns:300px 1fr;gap:16px;padding:16px}
+.side{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:20px 16px}
+.brand{display:flex;align-items:center;gap:10px;padding:0 0 22px}
+.brand img{width:40px;height:40px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 2px #fff,0 0 0 4px var(--amber)}
+.brand b{font-size:20px;font-weight:600}
+.grp{font:500 10px "JetBrains Mono";letter-spacing:.12em;text-transform:uppercase;color:#5E6578CC;padding:18px 0 6px}
+.grp:first-of-type{padding-top:0}
+.nav a{position:relative;display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:10px;font-size:13.5px;font-weight:500;color:var(--muted)}
+.nav a.on{background:var(--bg);color:var(--fg)}
+.nav a.on::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:0 3px 3px 0;background:var(--amber)}
+.nav a.on svg{color:var(--amber-600)}
+.main{display:flex;flex-direction:column;gap:16px;min-width:0;min-height:0}
+.hdr{height:56px;flex-shrink:0;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);display:flex;align-items:center;gap:12px;padding:0 16px}
+.hdr .sep{width:1px;height:20px;background:var(--line-strong)}
+.crumb{flex:1;font-size:14px;color:var(--muted)}
+.crumb b{color:var(--fg);font-weight:500}
+.hdr .date{font:12px "JetBrains Mono";color:var(--muted);padding-right:8px}
+.ib{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.user{display:flex;align-items:center;gap:8px;padding:4px 8px 4px 4px;border-radius:10px;font-size:14px;font-weight:500}
+.user img{width:32px;height:32px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 2px #fff,0 0 0 4px var(--amber)}
+
+/* page */
+.content{padding:8px 8px 0;display:flex;flex-direction:column;min-height:0;flex:1}
+.ph{display:flex;justify-content:space-between;align-items:flex-end;gap:16px}
+.ph h2{font:600 26px Poppins;letter-spacing:-.02em}
+.ph p{font-size:14px;color:var(--muted);margin-top:4px}
+.card{background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow)}
+.btn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:8px;font:500 13px Poppins;border:1px solid var(--line-strong);background:#fff;box-shadow:0 1px 2px #1B1E290D;white-space:nowrap;color:var(--fg)}
+.btn svg{width:14px;height:14px}
+.btn.primary{background:var(--amber);border-color:transparent;color:var(--ink);box-shadow:0 1px 2px #9A671033}
+.btn.lg{height:40px;padding:0 16px;font-size:14px;border-radius:10px}
+.btn.ghost{border-color:transparent;box-shadow:none;background:transparent}
+.btn.danger{background:#E0654F;border-color:transparent;color:#fff}
+.kbd{font:500 11px "JetBrains Mono";color:var(--amber-text);background:#ffffff80;border-radius:5px;padding:1px 5px;margin-left:4px}
+.search{height:40px;width:300px;border-radius:10px;border:1px solid var(--line-strong);background:#fff;display:flex;align-items:center;gap:8px;padding:0 12px;font-size:13.5px;color:var(--muted)}
+.search svg{width:15px;height:15px}
+.search .k{margin-left:auto;font:500 11px "JetBrains Mono";background:var(--sunken);border-radius:5px;padding:1px 6px}
+
+/* notes layout */
+.nw{display:grid;grid-template-columns:372px 1fr;gap:16px;margin-top:22px;flex:1;min-height:0}
+.list{padding:14px 12px;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.lh{display:flex;justify-content:space-between;align-items:center;padding:2px 6px 12px}
+.lh .t{display:flex;align-items:center;gap:10px}
+.lh b{font-size:15px;font-weight:600}
+.count{font:500 11px "JetBrains Mono";color:var(--muted);background:var(--sunken);border-radius:99px;padding:2px 8px}
+.seg{display:inline-flex;background:var(--sunken);border-radius:9px;padding:3px;gap:2px}
+.seg span{height:26px;padding:0 10px;border-radius:7px;font:500 12px Poppins;color:var(--muted);display:flex;align-items:center;gap:5px}
+.seg span.on{background:#fff;color:var(--fg);box-shadow:0 1px 2px #1B1E2914}
+.seg svg{width:12px;height:12px}
+.tags{display:flex;flex-wrap:wrap;gap:6px;padding:0 6px 12px;border-bottom:1px solid var(--line)}
+.tag{height:24px;padding:0 9px;border-radius:99px;font:500 11.5px "JetBrains Mono";display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line-strong);color:var(--muted);background:#fff}
+.tag.on{background:var(--fg);border-color:var(--fg);color:#fff}
+.tag small{font-size:10.5px;opacity:.7}
+.sec{font:500 10px "JetBrains Mono";letter-spacing:.12em;text-transform:uppercase;color:#5E6578CC;padding:14px 8px 6px;display:flex;align-items:center;gap:6px}
+.sec svg{width:11px;height:11px}
+.ni{position:relative;padding:11px 12px 11px 14px;border-radius:14px;border:1px solid transparent}
+.ni + .ni{margin-top:2px}
+.ni.on{background:var(--bg);border-color:var(--line)}
+.ni.on::before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:3px;border-radius:0 3px 3px 0;background:var(--amber)}
+.ni .tt{font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ni .tt svg{width:12px;height:12px;color:var(--amber-600);fill:#E9B03F55}
+.ni .pv{font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ni .mt{display:flex;align-items:center;gap:8px;margin-top:8px;font:11px "JetBrains Mono";color:var(--muted)}
+.ni .mt .r{margin-left:auto}
+.chip{height:20px;padding:0 7px;border-radius:6px;font:500 10.5px "JetBrains Mono";display:inline-flex;align-items:center}
+.c-amber{background:#E9B03F26;color:var(--amber-text)}
+.c-sky{background:#5B9DE61F;color:var(--sky-text)}
+.c-olive{background:#7E9A6222;color:var(--olive-text)}
+.c-violet{background:#7A4FC01A;color:var(--violet-text)}
+.c-clay{background:#E0654F1A;color:var(--clay-text)}
+
+/* editor */
+.ed{display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.eb{display:flex;align-items:center;gap:8px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.eb .addt{height:24px;padding:0 9px;border-radius:99px;border:1px dashed var(--line-strong);font:500 11.5px "JetBrains Mono";color:var(--muted);display:inline-flex;align-items:center;gap:4px}
+.eb .addt svg{width:11px;height:11px}
+.eb .tg{height:24px;padding:0 6px 0 9px;border-radius:99px;font:500 11.5px "JetBrains Mono";display:inline-flex;align-items:center;gap:4px}
+.eb .tg svg{width:11px;height:11px;opacity:.6}
+.saved{margin-left:auto;display:flex;align-items:center;gap:6px;font:12px "JetBrains Mono";color:var(--olive-text)}
+.saved svg{width:13px;height:13px}
+.saved.ing{color:var(--muted)}
+.saved.ing i{width:6px;height:6px;border-radius:50%;background:var(--amber);display:block;box-shadow:0 0 0 3px #E9B03F33}
+.ico{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--muted);border:1px solid transparent}
+.ico svg{width:16px;height:16px}
+.ico.on{color:var(--amber-600);background:#E9B03F1F;border-color:#E9B03F55}
+.ico.on svg{fill:#E9B03F55}
+.ico.h{background:var(--bg);color:var(--fg)}
+.ebody{padding:26px 32px 20px;flex:1;min-height:0;overflow:hidden}
+.ebody h3{font:600 24px Poppins;letter-spacing:-.02em}
+.ebody .meta{font:12px "JetBrains Mono";color:var(--muted);margin-top:8px;display:flex;gap:14px}
+.ebody .txt{margin-top:20px;font-size:14.5px;line-height:1.75;color:#2A2E3B;white-space:pre-wrap;max-width:680px}
+.caret{display:inline-block;width:1.5px;height:19px;background:var(--amber-600);vertical-align:-4px;margin-left:1px}
+.efoot{display:flex;align-items:center;gap:14px;padding:12px 18px;border-top:1px solid var(--line);font:11.5px "JetBrains Mono";color:var(--muted)}
+.efoot .r{margin-left:auto}
+.efoot b{font-weight:500;color:var(--fg)}
+
+/* states */
+.states{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:40px;align-items:start}
+.states3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:40px;align-items:start}
+.st-h{margin-bottom:12px}
+.st-h b{display:block;font-size:15px;font-weight:600;margin-top:4px}
+.st-h span{font-weight:400;font-size:12px;color:var(--muted)}
+.empty{border:1px dashed var(--line-strong);border-radius:16px;padding:32px 22px;text-align:center;background:var(--bg)}
+.empty .ic{width:44px;height:44px;border-radius:12px;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;margin:0 auto;color:var(--amber-600)}
+.empty b{display:block;font-size:14px;font-weight:600;margin-top:14px}
+.empty p{font-size:13px;color:var(--muted);margin-top:4px;line-height:1.5}
+.empty .btn{margin-top:16px}
+.dlg{background:#fff;border:1px solid var(--line-strong);border-radius:20px;box-shadow:0 12px 32px #1B1E291F;overflow:hidden;position:relative}
+.dlg .hd{padding:24px 24px 6px}
+.dlg .hd h4{font-size:18px;font-weight:600}
+.dlg .hd p{font-size:13px;color:var(--muted);margin-top:4px;line-height:1.5}
+.dlg .x{position:absolute;top:20px;right:20px;color:var(--muted)}
+.dlg .ft{display:flex;justify-content:flex-end;gap:8px;padding:16px 24px;border-top:1px solid var(--line);margin-top:18px}
+.ph-t{color:#5E657880}
+.tpop{margin-top:10px;border:1px solid var(--line-strong);border-radius:12px;box-shadow:0 12px 32px #1B1E291F;padding:6px;background:#fff;width:240px}
+.tpop .in{height:34px;border-radius:8px;border:1px solid var(--amber-600);box-shadow:0 0 0 4px #E9B03F33;display:flex;align-items:center;padding:0 10px;font:12.5px "JetBrains Mono";margin-bottom:6px}
+.tpop div.o{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-radius:8px;font:12.5px "JetBrains Mono"}
+.tpop div.o.on{background:var(--bg)}
+.tpop div.o span{font:11.5px Poppins;color:var(--muted)}
+
+/* mobile */
+.phones{display:flex;gap:20px}
+.phone{width:300px;background:var(--bg);border:1px solid var(--line-strong);border-radius:28px;box-shadow:0 12px 32px #1B1E291F;padding:14px 12px;overflow:hidden}
+.phone .top{display:flex;align-items:center;justify-content:space-between;padding:4px 4px 12px}
+.phone .top b{font-size:18px;font-weight:600}
+.phone .ni{background:#fff;border-color:var(--line);margin-top:8px}
+.phone .back{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.phone .back svg{width:14px;height:14px;transform:rotate(90deg)}
+.specs{margin-top:40px;display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.spec{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;font-size:12.5px;color:var(--muted);line-height:1.55}
+.spec b{display:block;color:var(--fg);font-size:13px;font-weight:600;margin-bottom:4px}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/></symbol>
+  <symbol id="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="book" viewBox="0 0 24 24"><path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z"/><path d="M4 19V5"/></symbol>
+  <symbol id="dash" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></symbol>
+  <symbol id="clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="wallet" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M16 13h2M3 10h18"/></symbol>
+  <symbol id="bag" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2"/></symbol>
+  <symbol id="folder" viewBox="0 0 24 24"><path d="M3 6a1 1 0 011-1h5l2 2h9a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1z"/></symbol>
+  <symbol id="news" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></symbol>
+  <symbol id="gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9L7 7M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></symbol>
+  <symbol id="bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9M10 21h4"/></symbol>
+  <symbol id="panel" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></symbol>
+  <symbol id="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+  <symbol id="x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="term" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M13 15h4"/></symbol>
+  <symbol id="search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></symbol>
+  <symbol id="check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="note" viewBox="0 0 24 24"><path d="M5 3h11l4 4v13a1 1 0 01-1 1H5a1 1 0 01-1-1V4a1 1 0 011-1z"/><path d="M15 3v5h5M8 12h8M8 16h5"/></symbol>
+  <symbol id="pin" viewBox="0 0 24 24"><path d="M9 3h6l-1 6 4 4H6l4-4z"/><path d="M12 13v8"/></symbol>
+  <symbol id="trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+  <symbol id="dots" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol>
+  <symbol id="hash" viewBox="0 0 24 24"><path d="M5 9h14M5 15h14M10 4L8 20M16 4l-2 16"/></symbol>
+</svg>
+
+<div class="board">
+  <div class="board-head">
+    <div><div class="eyebrow">MasterMe · Amber Lens v2.0 · Page design</div><h1>Notes</h1></div>
+    <p>Desktop 1440 × 900 · route <b>/notes</b> (+ <b>/notes?id=…</b>)<br>Plain-text notes with tags and pins · autosave as you type<br>Scoped to the signed-in user · search by title, body and tag</p>
+  </div>
+
+  <!-- MAIN PAGE -->
+  <div class="frame">
+    <div class="chrome"><i></i><i></i><i></i><div class="url">localhost:3000/notes?id=cmg8q2…</div></div>
+    <div class="app">
+      <aside class="side">
+        <div class="brand"><img src="../public/images/avatar.png" alt=""><b>MasterMe</b></div>
+        <nav class="nav">
+          <div class="grp">Dashboards</div>
+          <a><svg class="i"><use href="#dash"/></svg>Dashboard</a>
+          <div class="grp">Life management</div>
+          <a><svg class="i"><use href="#globe"/></svg>Portfolio</a>
+          <a><svg class="i"><use href="#book"/></svg>Learning</a>
+          <a><svg class="i"><use href="#clock"/></svg>Timeline</a>
+          <a class="on"><svg class="i"><use href="#note"/></svg>Notes</a>
+          <a><svg class="i"><use href="#wallet"/></svg>Monthly Cost</a>
+          <div class="grp">Career &amp; business</div>
+          <a><svg class="i"><use href="#bag"/></svg>Jobs</a>
+          <a><svg class="i"><use href="#folder"/></svg>Projects</a>
+          <a><svg class="i"><use href="#term"/></svg>Logs</a>
+          <a><svg class="i"><use href="#news"/></svg>Tech News</a>
+          <div class="grp">Account</div>
+          <a><svg class="i"><use href="#gear"/></svg>Settings</a>
+        </nav>
+      </aside>
+
+      <div class="main">
+        <div class="hdr">
+          <span class="ib" style="width:32px;height:32px"><svg class="i"><use href="#panel"/></svg></span>
+          <span class="sep"></span>
+          <div class="crumb">MasterMe <span style="opacity:.6">/</span> <b>Notes</b></div>
+          <span class="date">Sun, Oct 4</span>
+          <span class="ib"><svg class="i"><use href="#bell"/></svg></span>
+          <span class="user"><img src="../public/images/avatar.png" alt="">Aymen<svg class="i" style="width:14px;height:14px;color:var(--muted)"><use href="#chev"/></svg></span>
+        </div>
+
+        <div class="content">
+          <div class="ph">
+            <div><h2>Notes</h2><p>Ideas, meeting notes and things to remember, all in one place.</p></div>
+            <div style="display:flex;gap:8px">
+              <span class="search"><svg class="i"><use href="#search"/></svg>Search notes…<span class="k">/</span></span>
+              <span class="btn primary lg"><svg class="i"><use href="#plus"/></svg>New note<span class="kbd">N</span></span>
+            </div>
+          </div>
+
+          <div class="nw">
+            <!-- list -->
+            <div class="card list">
+              <div class="lh">
+                <div class="t"><b>All notes</b><span class="count">24</span></div>
+                <span class="seg"><span class="on">All</span><span><svg class="i"><use href="#pin"/></svg>Pinned</span></span>
+              </div>
+              <div class="tags">
+                <span class="tag on">all</span>
+                <span class="tag">#ideas <small>8</small></span>
+                <span class="tag">#clients <small>6</small></span>
+                <span class="tag">#meetings <small>5</small></span>
+                <span class="tag">#learning <small>3</small></span>
+                <span class="tag">#personal <small>2</small></span>
+              </div>
+
+              <div class="sec"><svg class="i"><use href="#pin"/></svg>Pinned</div>
+              <div class="ni on">
+                <div class="tt"><svg class="i"><use href="#pin"/></svg>Atlas CRM · kickoff call</div>
+                <p class="pv">Invoices need a clientId fallback. Karim wants the client portal live before the 20th, with Arabic and French.</p>
+                <div class="mt"><span class="chip c-sky">#clients</span><span class="chip c-amber">#meetings</span><span class="r">14:32</span></div>
+              </div>
+              <div class="ni">
+                <div class="tt"><svg class="i"><use href="#pin"/></svg>SaaS ideas backlog</div>
+                <p class="pv">1. Invoice reminders over WhatsApp for Moroccan freelancers. 2. School bus tracking for Schoolink parents…</p>
+                <div class="mt"><span class="chip c-amber">#ideas</span><span class="r">Oct 2</span></div>
+              </div>
+
+              <div class="sec">This week</div>
+              <div class="ni">
+                <div class="tt">Interview prep · Capgemini</div>
+                <p class="pv">Questions to ask: team size, on-call, remote days. Review system design for a job scraper.</p>
+                <div class="mt"><span class="chip c-olive">#learning</span><span class="r">Oct 3</span></div>
+              </div>
+              <div class="ni">
+                <div class="tt">Postgres indexes that matter</div>
+                <p class="pv">Partial index on status = 'new' for job offers. Check EXPLAIN on the timeline query before adding more.</p>
+                <div class="mt"><span class="chip c-olive">#learning</span><span class="r">Sep 30</span></div>
+              </div>
+
+              <div class="sec">Earlier</div>
+              <div class="ni">
+                <div class="tt">Gift ideas for Mom</div>
+                <p class="pv">Argan oil set from the coop in Essaouira, a new kettle, the photo book from summer.</p>
+                <div class="mt"><span class="chip c-violet">#personal</span><span class="r">Sep 21</span></div>
+              </div>
+            </div>
+
+            <!-- editor -->
+            <div class="card ed">
+              <div class="eb">
+                <span class="tg c-sky">#clients<svg class="i"><use href="#x"/></svg></span>
+                <span class="tg c-amber">#meetings<svg class="i"><use href="#x"/></svg></span>
+                <span class="addt"><svg class="i"><use href="#plus"/></svg>tag</span>
+                <span class="saved"><svg class="i"><use href="#check"/></svg>Saved</span>
+                <span class="ico on" title="Unpin"><svg class="i"><use href="#pin"/></svg></span>
+                <span class="ico h" title="Delete"><svg class="i"><use href="#trash"/></svg></span>
+              </div>
+              <div class="ebody">
+                <h3>Atlas CRM · kickoff call</h3>
+                <div class="meta"><span>Created Oct 1</span><span>·</span><span>Edited today 14:32</span><span>·</span><span>148 words</span></div>
+<div class="txt">Call with Karim (Atlas Digital), 45 min.
+
+What they want
+- Client portal live before Oct 20, in Arabic and French
+- Invoices: monthly retainer + one-off setup fee
+- Export clients to Excel for their accountant
+
+Bugs to fix first
+- POST /api/invoices fails when clientId is missing, add a fallback
+- Monthly report times out after 10 s, move it to a background job
+
+Budget: 18,000 MAD build + 900 MAD / month hosting and support.
+Next call Thursday 10:00. Send the updated quote before that.<span class="caret"></span></div>
+              </div>
+              <div class="efoot"><span>Plain text · autosaves as you type</span><span class="r"><b>Esc</b> back to list · <b>⌘ S</b> save now</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATES -->
+  <div class="states3">
+    <div>
+      <div class="st-h"><div class="eyebrow">Empty state · no notes yet</div><b>First visit <span>· list column + editor area</span></b></div>
+      <div class="empty"><div class="ic"><svg class="i"><use href="#note"/></svg></div><b>No notes yet</b><p>Write down ideas, meeting notes and anything you want to remember. They stay private to your account.</p><span class="btn primary"><svg class="i"><use href="#plus"/></svg>New note</span></div>
+    </div>
+    <div>
+      <div class="st-h"><div class="eyebrow">Search · no results</div><b>Nothing matches <span>· search covers title, body and tags</span></b></div>
+      <div class="empty"><div class="ic"><svg class="i"><use href="#search"/></svg></div><b>No notes match "stripe"</b><p>Try a different word, or clear the tag filter <span class="mono" style="color:var(--fg)">#clients</span>.</p><span class="btn"><svg class="i"><use href="#x"/></svg>Clear filters</span></div>
+    </div>
+    <div>
+      <div class="st-h"><div class="eyebrow">Popup · delete note</div><b>Confirm before deleting <span>· no undo</span></b></div>
+      <div class="dlg">
+        <svg class="i x"><use href="#x"/></svg>
+        <div class="hd"><h4>Delete this note?</h4><p>"Atlas CRM · kickoff call" will be deleted for good. This can't be undone.</p></div>
+        <div class="ft"><span class="btn ghost lg">Cancel</span><span class="btn danger lg"><svg class="i"><use href="#trash"/></svg>Delete</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="states">
+    <div>
+      <div class="st-h"><div class="eyebrow">Editor · new note</div><b>Blank note, saving <span>· created on the first keystroke, never empty</span></b></div>
+      <div class="card ed" style="height:330px">
+        <div class="eb">
+          <span class="addt"><svg class="i"><use href="#plus"/></svg>tag</span>
+          <span class="saved ing"><i></i>Saving…</span>
+          <span class="ico" title="Pin"><svg class="i"><use href="#pin"/></svg></span>
+          <span class="ico" title="Delete"><svg class="i"><use href="#trash"/></svg></span>
+        </div>
+        <div class="ebody">
+          <h3 class="ph-t">Untitled note</h3>
+          <div class="meta"><span>New · not saved yet</span></div>
+          <div class="txt">Ideas for the weekly review<span class="caret"></span></div>
+        </div>
+      </div>
+      <div class="st-h" style="margin-top:22px"><div class="eyebrow">Editor · add tag</div><b>Pick an existing tag or type a new one <span>· lowercase, max 5 per note</span></b></div>
+      <div class="card" style="padding:14px 16px;display:flex;gap:8px;align-items:flex-start">
+        <span class="tg c-amber" style="height:24px;padding:0 9px;border-radius:99px;font:500 11.5px 'JetBrains Mono';display:inline-flex;align-items:center">#ideas</span>
+        <div>
+          <span class="tg" style="height:24px;padding:0 9px;border-radius:99px;font:500 11.5px 'JetBrains Mono';display:inline-flex;align-items:center;border:1px dashed var(--line-strong);color:var(--muted)">+ tag</span>
+          <div class="tpop">
+            <div class="in">sa<span class="caret" style="height:14px;vertical-align:-2px"></span></div>
+            <div class="o on">#saas <span>3 notes</span></div>
+            <div class="o">#sanity <span>1 note</span></div>
+            <div class="o"><span style="font:12.5px 'JetBrains Mono';color:var(--fg)">Create <b style="font-weight:500;color:var(--amber-text)">#sa</b></span><span>new tag</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="st-h"><div class="eyebrow">Small screens · no mobile reference</div><b>List first, tap to open <span>· one column, back arrow returns to the list</span></b></div>
+      <div class="phones">
+        <div class="phone">
+          <div class="top"><b>Notes</b><span class="btn primary"><svg class="i"><use href="#plus"/></svg>New</span></div>
+          <span class="search" style="width:100%;height:36px"><svg class="i"><use href="#search"/></svg>Search notes…</span>
+          <div class="tags" style="padding:10px 0;border:0"><span class="tag on">all</span><span class="tag">#ideas</span><span class="tag">#clients</span><span class="tag">#meetings</span></div>
+          <div class="ni"><div class="tt"><svg class="i"><use href="#pin"/></svg>Atlas CRM · kickoff call</div><p class="pv">Invoices need a clientId fallback. Karim wants the portal live before the 20th.</p><div class="mt"><span class="chip c-sky">#clients</span><span class="r">14:32</span></div></div>
+          <div class="ni"><div class="tt"><svg class="i"><use href="#pin"/></svg>SaaS ideas backlog</div><p class="pv">1. Invoice reminders over WhatsApp for Moroccan freelancers…</p><div class="mt"><span class="chip c-amber">#ideas</span><span class="r">Oct 2</span></div></div>
+          <div class="ni"><div class="tt">Interview prep · Capgemini</div><p class="pv">Questions to ask: team size, on-call, remote days.</p><div class="mt"><span class="chip c-olive">#learning</span><span class="r">Oct 3</span></div></div>
+        </div>
+        <div class="phone" style="background:#fff">
+          <div class="top"><span class="back"><svg class="i"><use href="#chev"/></svg>Notes</span><span style="display:flex;gap:2px"><span class="ico on"><svg class="i"><use href="#pin"/></svg></span><span class="ico"><svg class="i"><use href="#trash"/></svg></span></span></div>
+          <div style="display:flex;gap:6px;padding:0 4px"><span class="chip c-sky">#clients</span><span class="chip c-amber">#meetings</span></div>
+          <div style="padding:14px 4px 0">
+            <h3 style="font:600 19px Poppins;letter-spacing:-.02em">Atlas CRM · kickoff call</h3>
+            <div style="font:11px 'JetBrains Mono';color:var(--muted);margin-top:6px">Edited today 14:32 · <span style="color:var(--olive-text)">Saved</span></div>
+            <div style="margin-top:14px;font-size:13px;line-height:1.7;color:#2A2E3B;white-space:pre-wrap">Call with Karim (Atlas Digital), 45 min.
+
+What they want
+- Client portal live before Oct 20
+- Invoices: retainer + setup fee
+- Export clients to Excel
+
+Bugs to fix first
+- POST /api/invoices fails when…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="specs">
+    <div class="spec"><b>What a note is</b>A title, a plain-text body (up to 20,000 characters), up to 5 tags and a pin. The title is optional: an untitled note shows its first line in the list.</div>
+    <div class="spec"><b>Order &amp; grouping</b>Pinned notes first, then by last edit: This week, Earlier. Tag chips filter the list; All / Pinned toggles pinned only. The open note is kept in the URL (<span class="mono">?id=</span>).</div>
+    <div class="spec"><b>Autosave</b>Saves 800 ms after you stop typing, and on blur or <span class="mono">⌘ S</span>. The header shows Saving… then Saved. If a save fails, it says "Not saved · Retry" and keeps your text.</div>
+    <div class="spec"><b>Security</b>Every note belongs to the signed-in user; all routes check the session and filter by userId. The body is rendered as text, never as HTML.</div>
+  </div>
+</div>
+</body>
+</html>

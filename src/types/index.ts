@@ -149,3 +149,13 @@ export interface NotificationsSummary {
   applicationsDue: number;
   contactsDue: number;
 }
+
+export interface Note {
+  id: string;
+  title: string;
+  body: string;
+  tags: string[];
+  pinned: boolean;
+  createdAt: string;
+  updatedAt: string;
+}

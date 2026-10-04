@@ -20,6 +20,7 @@ import {
   Newspaper,
   Settings,
   SquareTerminal,
+  StickyNote,
   Wallet,
 } from "lucide-react";
 
@@ -33,6 +34,7 @@ export const navData: NavItem[] = [
   { title: "Portfolio", icon: Globe, href: "/portfolio" },
   { title: "Learning", icon: BookOpen, href: "/learning" },
   { title: "Timeline", icon: Clock, href: "/timeline" },
+  { title: "Notes", icon: StickyNote, href: "/notes" },
   { title: "Monthly Cost", icon: Wallet, href: "/monthly-cost" },
 
   // Career & Business Section

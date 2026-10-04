@@ -227,3 +227,23 @@ export const monthlyCostUpdateSchema = z.object({
   notes: z.string().optional(),
   projectId: z.string().nullable().optional(),
 });
+
+export const NOTE_BODY_MAX = 20_000;
+export const NOTE_TAGS_MAX = 5;
+
+export const noteTagSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .regex(/^[a-z0-9-]{1,24}$/, "Tags use a–z, 0–9 and -, up to 24 characters");
+
+export const noteSchema = z.object({
+  title: z.string().max(200).optional(),
+  body: z.string().max(NOTE_BODY_MAX).optional(),
+  tags: z
+    .array(noteTagSchema)
+    .max(NOTE_TAGS_MAX)
+    .transform((tags) => [...new Set(tags)])
+    .optional(),
+  pinned: z.boolean().optional(),
+});
