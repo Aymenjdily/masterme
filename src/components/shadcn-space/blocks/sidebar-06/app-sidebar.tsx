@@ -7,6 +7,7 @@ import {
   SidebarMenu,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import Link from "next/link";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import Logo from "@/assets/logo/logo";
 import { NavItem, NavMain } from "@/components/shadcn-space/blocks/sidebar-06/nav-main";
@@ -63,9 +64,9 @@ export function AppSidebar({ badges }: { badges?: Record<string, number | undefi
         <SidebarHeader className="px-4">
           <SidebarMenu>
             <SidebarMenuItem>
-              <a href="/" className="w-full h-full">
+              <Link href="/" className="w-full h-full">
                 <Logo />
-              </a>
+              </Link>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarHeader>

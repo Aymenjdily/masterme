@@ -54,16 +54,19 @@ export function NavMain({ items }: { items: NavItem[] }) {
   }, [items, pathname]);
 
   const [activeParent, setActiveParent] = React.useState<string | null>(
-    items.find((i) => !i.isSection)?.title || null
+    currentTitle ?? (items.find((i) => !i.isSection)?.title || null)
   );
   const [activeChild, setActiveChild] = React.useState<string | null>(null);
 
-  React.useEffect(() => {
+  // Follow the URL on navigation (adjusting state during render, not in an effect)
+  const [syncedTitle, setSyncedTitle] = React.useState(currentTitle);
+  if (currentTitle !== syncedTitle) {
+    setSyncedTitle(currentTitle);
     if (currentTitle) {
       setActiveParent(currentTitle);
       setActiveChild(null);
     }
-  }, [currentTitle]);
+  }
 
   return (
     <>
@@ -98,12 +101,12 @@ function NavMainItem({
   const isParentActive = activeParent === item.title;
   const [isOpen, setIsOpen] = React.useState(isParentActive);
 
-  // Sync open state when activeParent changes
-  React.useEffect(() => {
-    if (isParentActive) {
-      setIsOpen(true);
-    }
-  }, [isParentActive]);
+  // Open when this item becomes the active parent
+  const [wasActive, setWasActive] = React.useState(isParentActive);
+  if (isParentActive !== wasActive) {
+    setWasActive(isParentActive);
+    if (isParentActive) setIsOpen(true);
+  }
 
   // Section label
   if (item.isSection && item.label) {
