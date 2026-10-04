@@ -1,5 +1,8 @@
+import type { Metadata } from "next";
 import { todayDateParam, isValidDateParam } from "@/lib/date";
 import { TimelineView } from "@/components/timeline/TimelineView";
+
+export const metadata: Metadata = { title: "Timeline" };
 
 export default async function TimelinePage(props: PageProps<"/timeline">) {
   const searchParams = await props.searchParams;

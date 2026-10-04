@@ -1,7 +1,10 @@
+import type { Metadata } from "next";
 import { PortfolioLinkList } from "@/components/portfolio/PortfolioLinkList";
 import { SocialAppList } from "@/components/portfolio/SocialAppList";
 import { BlogCard } from "@/components/blog/BlogCard";
 import { ProjectsCard } from "@/components/sanity-projects/ProjectsCard";
+
+export const metadata: Metadata = { title: "Portfolio" };
 
 export default function PortfolioPage() {
   return (
