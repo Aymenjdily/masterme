@@ -14,5 +14,6 @@ export const queryKeys = {
   notificationsSummary: ["notifications-summary"] as const,
   logsUnseen: ["logs-unseen"] as const,
   notes: ["notes"] as const,
+  noteTasks: (date: string) => ["note-tasks", date] as const,
   projectLogs: (project: string, range: string) => ["project-logs", project, range] as const,
 };

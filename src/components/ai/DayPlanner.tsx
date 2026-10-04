@@ -3,7 +3,7 @@
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { Check, Clock, Coffee, FolderKanban, Newspaper, Pencil, Plus, RefreshCw, Route, Send, Sparkles, TriangleAlert, X } from "lucide-react";
+import { Check, Clock, Coffee, FolderKanban, Newspaper, Pencil, Plus, RefreshCw, Route, Send, Sparkles, StickyNote, TriangleAlert, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { TimeBlock } from "@/types";
 import type { DayPlanResult, PlanCounts, PlanInclude, PlanSource, PlanSuggestion } from "@/lib/ai/day-plan-kinds";
@@ -30,6 +30,7 @@ export const SOURCE_STYLE: Record<PlanSource, { icon: typeof Route; chip: string
   project: { icon: FolderKanban, chip: "bg-special/12 text-special-strong", bar: "bg-special" },
   followups: { icon: Send, chip: "bg-info/12 text-info-strong", bar: "bg-info" },
   learning: { icon: Route, chip: "bg-success/15 text-success-strong", bar: "bg-success" },
+  notes: { icon: StickyNote, chip: "bg-primary/15 text-warning-strong", bar: "bg-primary" },
   radar: { icon: Newspaper, chip: "bg-stone/45 text-stone-strong", bar: "bg-stone" },
   break: { icon: Coffee, chip: "bg-muted text-muted-foreground", bar: "bg-foreground/15" },
 };
@@ -232,7 +233,7 @@ export function PlanPanel({
   const kept = keptSuggestions(plan);
   const work = kept.filter((s) => s.source !== "break").length;
   const hasBreak = kept.some((s) => s.source === "break");
-  const bySource = (["project", "followups", "learning", "radar", "break"] as PlanSource[])
+  const bySource = (["project", "followups", "notes", "learning", "radar", "break"] as PlanSource[])
     .map((source) => ({ source, hours: kept.filter((s) => s.source === source).length }))
     .filter((row) => row.hours > 0);
   const rest = 8 - kept.length;
@@ -338,6 +339,7 @@ const INCLUDE_ROWS: { key: keyof PlanInclude; source: PlanSource; label: string 
   { key: "followups", source: "followups", label: "due today" },
   { key: "learning", source: "learning", label: "next steps of active paths" },
   { key: "projects", source: "project", label: "active projects" },
+  { key: "notes", source: "notes", label: "tagged #todo" },
   { key: "radar", source: "radar", label: "new items to read" },
 ];
 
@@ -375,13 +377,13 @@ function PlanDialogBody({
   onPlanned: (result: DayPlanResult) => void;
 }) {
   const [focus, setFocus] = useState("");
-  const [include, setInclude] = useState<PlanInclude>({ followups: true, learning: true, projects: true, radar: false });
+  const [include, setInclude] = useState<PlanInclude>({ followups: true, learning: true, projects: true, notes: true, radar: false });
   const [status, setStatus] = useState<"form" | "planning" | "error">("form");
   const [error, setError] = useState("");
   const counts = useQuery({
-    queryKey: ["day-plan-counts"],
+    queryKey: ["day-plan-counts", date],
     queryFn: async (): Promise<PlanCounts> => {
-      const res = await fetch("/api/ai/day-plan");
+      const res = await fetch(`/api/ai/day-plan?date=${date}`);
       if (!res.ok) throw new Error("Failed to load counts");
       return res.json();
     },

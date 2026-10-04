@@ -30,11 +30,11 @@ type OpenNote = { key: string; note: Note | null };
 
 const setUrl = (id: string | null) => window.history.replaceState(null, "", id ? `/notes?id=${id}` : "/notes");
 
-export function NotesView({ initialId }: { initialId: string | null }) {
+export function NotesView({ initialId, initialTag }: { initialId: string | null; initialTag: string | null }) {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
-  const [tag, setTag] = useState<string | null>(null);
+  const [tag, setTag] = useState<string | null>(initialTag);
   const [pinnedOnly, setPinnedOnly] = useState(false);
   const [open, setOpen] = useState<OpenNote | null>(null);
   const [pendingInitial, setPendingInitial] = useState(initialId);

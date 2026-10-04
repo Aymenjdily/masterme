@@ -45,6 +45,8 @@ export interface TimeBlock {
   description?: string;
   status: "planned" | "in_progress" | "completed";
   priority: "low" | "medium" | "high";
+  /** Set when the block was made from a #todo note */
+  noteId?: string | null;
 }
 
 export interface JobOffer {

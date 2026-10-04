@@ -59,6 +59,8 @@ export const timeBlockSchema = z.object({
   description: z.string().optional(),
   status: z.enum(["planned", "in_progress", "completed"]).default("planned"),
   priority: z.enum(["low", "medium", "high"]).default("medium"),
+  /** The #todo note this block comes from */
+  noteId: z.string().min(1).max(64).optional(),
 });
 
 // Used for PATCH: no `.default()`, so omitted fields stay omitted

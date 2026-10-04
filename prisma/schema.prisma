@@ -159,11 +159,15 @@ model TimeBlock {
   description String?
   status      String   @default("planned")
   priority    String   @default("medium")
+  /// The #todo note this block was made from (kept as a plain block if the note is deleted)
+  noteId      String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   timeline    Timeline @relation(fields: [timelineId], references: [id], onDelete: Cascade)
+  note        Note?    @relation(fields: [noteId], references: [id], onDelete: SetNull)
 
   @@unique([timelineId, hour])
+  @@index([noteId])
 }
 
 model JobOffer {
@@ -383,15 +387,16 @@ model ProjectLog {
 }
 
 model Note {
-  id        String   @id @default(cuid())
-  userId    String
-  title     String   @default("")
-  body      String   @default("") @db.Text
-  tags      String[] @default([])
-  pinned    Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id         String      @id @default(cuid())
+  userId     String
+  title      String      @default("")
+  body       String      @default("") @db.Text
+  tags       String[]    @default([])
+  pinned     Boolean     @default(false)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  timeBlocks TimeBlock[]
 
   @@index([userId, pinned, updatedAt])
 }

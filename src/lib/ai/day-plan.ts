@@ -5,6 +5,7 @@ import { parseDateParam } from "@/lib/date";
 import { decide, score, type Question } from "@/lib/ai/decisions";
 import { generateObject } from "@/lib/ai/openai";
 import { aiRateLimited } from "@/lib/ai/log";
+import { recommendedNoteTasks, TODO_TAG } from "@/lib/note-tasks";
 import type {
   DayPlanResult,
   NotToday,
@@ -19,12 +20,19 @@ import type {
 
 const MAX_CANDIDATES = 12;
 const RADAR_DAYS = 2;
+const MAX_NOTES = 5;
 const OPEN_STATUSES = new Set(["applied", "interviewing"]);
 
 export const dayPlanRequestSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   focus: z.string().trim().max(200).optional(),
-  include: z.object({ followups: z.boolean(), learning: z.boolean(), projects: z.boolean(), radar: z.boolean() }),
+  include: z.object({
+    followups: z.boolean(),
+    learning: z.boolean(),
+    projects: z.boolean(),
+    notes: z.boolean().default(false),
+    radar: z.boolean(),
+  }),
 });
 
 export function dayPlanRateLimited(userId: string) {
@@ -40,14 +48,15 @@ type Candidate = {
   detail: string;
   why: string;
   count: number;
+  noteId?: string;
 };
 
 function list(names: string[], max = 3) {
   return names.length > max ? `${names.slice(0, max).join(", ")} +${names.length - max}` : names.join(", ");
 }
 
-async function collect(userId: string) {
-  const [applications, recruiters, paths, projects, radar] = await Promise.all([
+async function collect(userId: string, date: Date) {
+  const [applications, recruiters, paths, projects, radar, notes] = await Promise.all([
     prisma.jobApplication.findMany({ where: { userId }, include: { jobOffer: true } }),
     prisma.recruiterContact.findMany({ where: { userId, lastContactedAt: { not: null }, endedAt: null } }),
     prisma.learningPath.findMany({
@@ -60,6 +69,7 @@ async function collect(userId: string) {
       orderBy: { createdAt: "desc" },
       take: 5,
     }),
+    recommendedNoteTasks(userId, date, MAX_NOTES),
   ]);
 
   const dueApps = applications.filter(
@@ -68,22 +78,23 @@ async function collect(userId: string) {
   const dueRecruiters = recruiters.filter((c) => c.lastContactedAt && isDueForFollowUp(c.lastContactedAt));
   const steps = paths.filter((p) => p.items.length > 0);
 
-  return { dueApps, dueRecruiters, steps, projects, radar };
+  return { dueApps, dueRecruiters, steps, projects, radar, notes };
 }
 
 /** Counts for the plan dialog (no AI). */
-export async function planCounts(userId: string): Promise<PlanCounts> {
-  const { dueApps, dueRecruiters, steps, projects, radar } = await collect(userId);
+export async function planCounts(userId: string, date: Date): Promise<PlanCounts> {
+  const { dueApps, dueRecruiters, steps, projects, radar, notes } = await collect(userId, date);
   return {
     followups: dueApps.length + dueRecruiters.length,
     learning: steps.length,
     projects: projects.length,
+    notes: notes.total,
     radar: radar.length,
   };
 }
 
-async function candidates(userId: string, include: PlanInclude): Promise<Candidate[]> {
-  const { dueApps, dueRecruiters, steps, projects, radar } = await collect(userId);
+async function candidates(userId: string, date: Date, include: PlanInclude): Promise<Candidate[]> {
+  const { dueApps, dueRecruiters, steps, projects, radar, notes } = await collect(userId, date);
   const out: Candidate[] = [];
 
   if (include.followups && dueApps.length + dueRecruiters.length > 0) {
@@ -123,6 +134,20 @@ async function candidates(userId: string, include: PlanInclude): Promise<Candida
       });
     }
   }
+  if (include.notes) {
+    for (const note of notes.tasks) {
+      const body = note.body.replace(/\s+/g, " ").trim().slice(0, 160);
+      out.push({
+        key: `note:${note.id}`,
+        source: "notes",
+        name: note.title,
+        detail: `To-do from the user's notes: "${note.title}"${body ? `: ${body}` : ""}`,
+        why: note.pinned ? `pinned #${TODO_TAG} note` : `tagged #${TODO_TAG} in Notes`,
+        count: 1,
+        noteId: note.id,
+      });
+    }
+  }
   if (include.radar) {
     for (const n of radar) {
       out.push({
@@ -139,11 +164,12 @@ async function candidates(userId: string, include: PlanInclude): Promise<Candida
 }
 
 const LEVEL_PRIORITY = { 2: "low", 3: "medium", 4: "high" } as const;
-const MORNING_SOURCES = new Set<PlanSource>(["project", "followups"]);
+const MORNING_SOURCES = new Set<PlanSource>(["project", "followups", "notes"]);
 
 const WHY_HERE: Record<PlanSource, (afternoon: boolean) => string> = {
   project: () => "Deep work goes first, while your head is fresh.",
   followups: () => "All due follow-ups in one block, right after deep work.",
+  notes: () => "A concrete to-do from your notes, done early while you're fresh.",
   learning: (afternoon) =>
     afternoon ? "Learning goes after lunch, since your mornings hold project work." : "Learning fits here because the afternoon is taken.",
   radar: () => "Reading goes late in the day.",
@@ -177,7 +203,7 @@ export async function planDay(
   const free = Array.from({ length: 8 }, (_, s) => s).filter((s) => !taken.has(s));
   if (free.length === 0) return { error: "day-full" };
 
-  const items = await candidates(userId, req.include);
+  const items = await candidates(userId, parseDateParam(req.date), req.include);
   if (items.length === 0) return { error: "nothing-open" };
 
   // 1. The AI scores each item: 1 = not today … 4 = high.
@@ -279,6 +305,7 @@ export async function planDay(
     confidence: c.confidence,
     why: c.item.why,
     whyHere: WHY_HERE[c.item.source](clock(slot) >= 13),
+    ...(c.item.noteId ? { noteId: c.item.noteId } : {}),
   }));
 
   if (wantsBreak && lunch !== null) {

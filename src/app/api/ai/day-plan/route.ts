@@ -1,14 +1,16 @@
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { dayPlanRateLimited, dayPlanRequestSchema, planCounts, planDay } from "@/lib/ai/day-plan";
+import { isValidDateParam, parseDateParam, todayDateParam } from "@/lib/date";
 
 /** Open item counts for the plan dialog (no AI call). */
-export async function GET() {
+export async function GET(request: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
-  return Response.json(await planCounts(session.user.id));
+  const date = new URL(request.url).searchParams.get("date") ?? "";
+  return Response.json(await planCounts(session.user.id, parseDateParam(isValidDateParam(date) ? date : todayDateParam())));
 }
 
 export async function POST(request: Request) {

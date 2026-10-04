@@ -1,10 +1,10 @@
 // Shared by the day-plan route and the timeline UI (no server imports here).
 
-export type PlanSource = "project" | "followups" | "learning" | "radar" | "break";
+export type PlanSource = "project" | "followups" | "learning" | "notes" | "radar" | "break";
 
-export type PlanInclude = { followups: boolean; learning: boolean; projects: boolean; radar: boolean };
+export type PlanInclude = { followups: boolean; learning: boolean; projects: boolean; notes: boolean; radar: boolean };
 
-export type PlanCounts = { followups: number; learning: number; projects: number; radar: number };
+export type PlanCounts = { followups: number; learning: number; projects: number; notes: number; radar: number };
 
 export type PlanSuggestion = {
   key: string;
@@ -22,6 +22,8 @@ export type PlanSuggestion = {
   why: string;
   /** Why this slot, from the placement rules */
   whyHere: string;
+  /** The #todo note this suggestion comes from */
+  noteId?: string;
 };
 
 export type NotToday = { source: PlanSource; title: string; reason: string };
@@ -42,6 +44,7 @@ export const SOURCE_LABEL: Record<PlanSource, string> = {
   project: "Project",
   followups: "Follow-ups",
   learning: "Learning",
+  notes: "Notes",
   radar: "Radar",
   break: "Break",
 };

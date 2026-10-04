@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowDown, ArrowUp, Check, Eraser, Pencil, Plus } from "lucide-react";
+import { ArrowDown, ArrowUp, Check, Eraser, Pencil, Plus, StickyNote } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { TimeBlock } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -123,6 +123,12 @@ export function TimeBlockSlot({
               >
                 {PRIORITY_TAG[block.priority].label}
               </span>
+              {block.noteId && (
+                <span className="inline-flex h-5 items-center gap-1 rounded-md bg-primary/15 px-1.75 font-mono text-[0.65625rem] font-medium text-warning-strong">
+                  <StickyNote className="size-2.75" />
+                  Note
+                </span>
+              )}
               {isNow && (
                 <span className="rounded-md bg-primary/15 px-1.75 py-0.5 font-mono text-[0.65625rem] font-medium tracking-wide text-warning-strong">
                   NOW

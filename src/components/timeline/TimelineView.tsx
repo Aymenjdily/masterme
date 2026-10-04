@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DeleteDialog, FormDialog } from "@/components/ui-patterns/dialogs";
 import { TimelineForm } from "@/components/forms/TimelineForm";
 import { DayProgress } from "@/components/timeline/DayProgress";
+import { NoteTasksCard } from "@/components/timeline/NoteTasksCard";
 import { NEXT_BLOCK_STATUS, TimeBlockSlot } from "@/components/timeline/TimeBlockSlot";
 import { WakeUpPicker, WakeUpPrompt, hourLabel } from "@/components/timeline/WakeUpPrompt";
 import {
@@ -82,7 +83,10 @@ export function TimelineView({ date, today }: { date: string; today: string }) {
     queryFn: () => fetchTimeline(date),
   });
 
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: key });
+  const invalidate = () => {
+    void queryClient.invalidateQueries({ queryKey: ["note-tasks"] });
+    return queryClient.invalidateQueries({ queryKey: key });
+  };
 
   const statusMutation = useMutation({
     mutationFn: ({ block, status }: { block: TimeBlock; status: TimeBlock["status"] }) =>
@@ -133,6 +137,15 @@ export function TimelineView({ date, today }: { date: string; today: string }) {
 
   const goTo = (target: string) => router.push(`/timeline?date=${target}`);
   const freeSlots = 8 - blocks.length;
+  const freeHours =
+    wakeUpHour == null
+      ? []
+      : Array.from({ length: 8 }, (_, slot) => slot)
+          .filter((slot) => !blocks.some((b) => b.hour === slot))
+          .map((slot) => ({ slot, clockHour: wakeUpHour + slot }));
+  // On today, suggest the first free hour from now on; otherwise the first free hour.
+  const nextFreeSlot =
+    (nowSlot !== undefined ? freeHours.find((h) => h.slot >= nowSlot) : undefined)?.slot ?? freeHours[0]?.slot ?? null;
   const planEvents = plan ? [plan.result.decisionEventId, plan.result.namingEventId] : [];
   const editingSuggestion = plan?.result.suggestions.find((s) => s.key === editingKey) ?? null;
 
@@ -163,6 +176,7 @@ export function TimelineView({ date, today }: { date: string; today: string }) {
           description: s.description ?? undefined,
           priority: s.priority,
           status: "planned",
+          ...(s.noteId ? { noteId: s.noteId } : {}),
         });
         created.push(block.id);
       }
@@ -347,10 +361,13 @@ export function TimelineView({ date, today }: { date: string; today: string }) {
           {plan ? (
             <PlanPanel plan={plan} ownBlocks={blocks.length} accepting={accepting} onAccept={acceptPlan} onDiscard={discardPlan} />
           ) : (
-            <DayProgress
-              blocks={blocks}
-              now={nowBlock && nowSlot !== undefined ? { block: nowBlock, clockHour: wakeUpHour + nowSlot } : null}
-            />
+            <div className="flex flex-col gap-4">
+              <DayProgress
+                blocks={blocks}
+                now={nowBlock && nowSlot !== undefined ? { block: nowBlock, clockHour: wakeUpHour + nowSlot } : null}
+              />
+              <NoteTasksCard date={date} freeHours={freeHours} nextSlot={nextFreeSlot} onChanged={invalidate} />
+            </div>
           )}
         </div>
       )}
