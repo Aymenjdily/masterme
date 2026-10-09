@@ -76,12 +76,26 @@ export const jobOfferSchema = z.object({
   title: z.string().min(1),
   company: z.string().min(1),
   location: z.string().optional(),
-  source: z.enum(["linkedin", "indeed", "manual"]),
+  source: z.enum(["linkedin", "linkedin-apify", "indeed", "manual"]),
   url: z.string().url(),
   description: z.string().optional(),
   salary: z.string().optional(),
   postedDate: z.string().optional(),
-  status: z.enum(["new", "applied", "interviewing", "rejected", "accepted"]).default("new"),
+  // "accepted" kept for legacy rows; "offer" is the JobRadar equivalent
+  status: z
+    .enum([
+      "new",
+      "interested",
+      "to_apply",
+      "applied",
+      "interviewing",
+      "rejected",
+      "accepted",
+      "offer",
+      "archived",
+      "not_interested",
+    ])
+    .default("new"),
   recruiterName: z.string().optional(),
   recruiterEmail: z.string().optional(),
   recruiterPhone: z.string().optional(),
@@ -118,7 +132,18 @@ export const jobApplicationUpdateSchema = z.object({
 });
 
 export const jobOfferStatusSchema = z.object({
-  status: z.enum(["new", "applied", "interviewing", "rejected", "accepted"]),
+  status: z.enum([
+    "new",
+    "interested",
+    "to_apply",
+    "applied",
+    "interviewing",
+    "rejected",
+    "accepted",
+    "offer",
+    "archived",
+    "not_interested",
+  ]),
 });
 
 export const userSkillsSchema = z.object({

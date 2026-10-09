@@ -15,6 +15,10 @@
     "db:studio": "prisma studio",
     "seed": "tsx scripts/seed.ts",
     "scrape:jobs": "tsx scripts/scrape-jobs.ts",
+    "jobradar:collect": "tsx scripts/jobradar-collect.ts",
+    "jobradar:score": "tsx scripts/jobradar-score.ts",
+    "jobradar:score:all": "tsx scripts/jobradar-score.ts --all",
+    "test": "vitest run",
     "news:fetch": "tsx scripts/fetch-tech-news.ts",
     "ai:smoke": "tsx scripts/ai-smoke.ts",
     "ai:try": "tsx scripts/ai-try.ts",
@@ -56,6 +60,8 @@
     "prisma": "^7.10.0",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vite": "^8.3.4",
+    "vitest": "^5.0.3"
   }
 }

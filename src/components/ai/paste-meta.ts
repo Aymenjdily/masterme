@@ -23,8 +23,7 @@ export const KIND_META: Record<
     tone: "bg-warning/15 text-warning-strong",
     href: "/jobs",
     hrefLabel: "Open in Jobs",
-  },
-  learning: {
+  },  learning: {
     label: "Learning step",
     short: "Learning step",
     hint: "Add it to one of your learning paths.",

@@ -31,6 +31,11 @@ model User {
   recruiterContacts RecruiterContact[]
   projects          Project[]
   techNews          TechNews[]
+  jobRadarConfig    JobRadarConfig?
+  jobRadarSearches  JobSearch[]
+  dailyUsages       DailyUsage[]
+  collectionRuns    CollectionRun[]
+  jobNotifications  JobNotification[]
   monthlyCosts      MonthlyCost[]
   aiEvents          AiEvent[]
   infraCosts        InfraCostSnapshot[]
@@ -186,12 +191,30 @@ model JobOffer {
   recruiterName  String?
   recruiterEmail String?
   recruiterPhone String?
+  /// JobRadar: stable LinkedIn job id (normalizing this covers dedupe across searches)
+  externalId     String?
+  /// JobRadar: target market the search came from: morocco | france
+  country        String?
+  /// remote | hybrid | onsite | unknown
+  workplaceType  String?
+  /// e.g. Full-time, Contract (as LinkedIn reports it)
+  employmentType String?
+  /// Tech keywords extracted from the description
+  technologies   String[]         @default([])
+  technologiesMatched String[]    @default([])
+  technologiesMissing String[]    @default([])
+  matchScore     Int?
+  matchReasons   String[]         @default([])
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
   user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   applications   JobApplication[]
+  notifications  JobNotification[]
 
   @@unique([userId, url])
+  @@unique([userId, externalId])
+  @@index([userId, status])
+  @@index([userId, country])
 }
 
 model JobApplication {
@@ -399,4 +422,116 @@ model Note {
   timeBlocks TimeBlock[]
 
   @@index([userId, pinned, updatedAt])
+}
+
+/// JobRadar: per-user collection profile, quotas, budget and notification prefs.
+/// Single-user app — one row per user, created on first collect run.
+model JobRadarConfig {
+  id               String  @id @default(cuid())
+  userId           String  @unique
+  /// Timezone used for daily quota day boundaries (e.g. "Africa/Casablanca")
+  timezone         String  @default("Africa/Casablanca")
+  dailyQuotaMorocco Int    @default(50)
+  dailyQuotaFrance  Int    @default(50)
+  dailyQuotaSaudi   Int    @default(50)
+  dailyQuotaUk      Int    @default(50)
+  /// Apify monthly budget cap in USD
+  monthlyBudgetUsd Float   @default(5)
+  /// Percentage of the budget held back as a safety margin
+  budgetMarginPct  Int     @default(10)
+  // Matching profile (JobRadar §2). Skills stay on User.skills.
+  profileTitle     String   @default("Full-Stack Engineer")
+  yearsExperience  Int      @default(4)
+  employmentTypes  String[] @default(["full-time", "contract", "freelance"])
+  titleKeywords    String[] @default(["full stack", "frontend", "software engineer", "react", "node"])
+  /// Overrides for the default matcher weights: { title, skills, experience, location, remote, employment, recency }
+  matchWeights     Json     @default("{}")
+  /// Notifications go to new jobs scoring at least this (0 = disabled)
+  matchThreshold   Int      @default(70)
+  /// When false, collection skips everything except application tracking
+  collectEnabled   Boolean @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  searches         JobSearch[]
+
+  @@map("job_radar_config")
+}
+
+/// One search = one keyword + location pair for a target market.
+model JobSearch {
+  id             String  @id @default(cuid())
+  userId         String
+  configId       String
+  /// morocco | france
+  country        String
+  keyword        String
+  /// Location text as typed into LinkedIn (country or city)
+  location       String
+  /// Cap for this single search, applied at the actor level too
+  limitPerSource Int     @default(25)
+  enabled        Boolean @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  config         JobRadarConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([configId, enabled, country])
+}
+
+/// One execution of the collector: totals, Apify run id, cost, errors.
+model CollectionRun {
+  id               String    @id @default(cuid())
+  userId           String
+  /// running | skipped | success | failed
+  status           String    @default("running")
+  /// cron | manual
+  trigger          String    @default("cron")
+  apifyRunIds      String[]  @default([])
+  resultsRetrieved Int       @default(0)
+  newJobs          Int       @default(0)
+  /// Actual USD cost reported by Apify for this run; null = unknown
+  apifyUsd         Float?
+  /// Why the run was skipped or failed (budget/quota/overlap/error detail)
+  note             String?
+  startedAt        DateTime  @default(now())
+  finishedAt       DateTime?
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, startedAt])
+}
+
+/// Per country per day quota accounting (day in the config timezone).
+model DailyUsage {
+  id               String   @id @default(cuid())
+  userId           String
+  /// morocco | france
+  country          String
+  day              DateTime @db.Date
+  resultsRetrieved Int      @default(0)
+  newJobs          Int      @default(0)
+  runs             Int      @default(0)
+  apifyUsd         Float    @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, country, day])
+}
+
+/// JobRadar: notification dedup/history (one per user+job+channel).
+model JobNotification {
+  id       String   @id @default(cuid())
+  userId   String
+  jobId    String
+  /// email | telegram
+  channel  String
+  /// sent | failed | skipped
+  status   String
+  error    String?
+  sentAt   DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job      JobOffer @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, jobId, channel])
 }

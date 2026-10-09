@@ -49,20 +49,41 @@ export interface TimeBlock {
   noteId?: string | null;
 }
 
+export type JobStatus =
+  | "new"
+  | "interested"
+  | "to_apply"
+  | "applied"
+  | "interviewing"
+  | "rejected"
+  | "accepted"
+  | "offer"
+  | "archived"
+  | "not_interested";
+
 export interface JobOffer {
   id: string;
   title: string;
   company: string;
   location?: string;
-  source: "linkedin" | "indeed" | "manual";
+  source: "linkedin" | "linkedin-apify" | "indeed" | "manual";
   url: string;
   description?: string;
   salary?: string;
   postedDate?: string;
-  status: "new" | "applied" | "interviewing" | "rejected" | "accepted";
+  status: JobStatus;
   recruiterName?: string;
   recruiterEmail?: string;
   recruiterPhone?: string;
+  externalId?: string;
+  country?: string;
+  workplaceType?: string;
+  employmentType?: string;
+  technologies?: string[];
+  technologiesMatched?: string[];
+  technologiesMissing?: string[];
+  matchScore?: number;
+  matchReasons?: string[];
 }
 
 export interface JobApplication {
@@ -160,4 +181,60 @@ export interface Note {
   pinned: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface JobRadarConfig {
+  dailyQuotaMorocco: number;
+  dailyQuotaFrance: number;
+  dailyQuotaSaudi: number;
+  dailyQuotaUk: number;
+  monthlyBudgetUsd: number;
+  budgetMarginPct: number;
+  matchThreshold: number;
+  collectEnabled: boolean;
+  timezone: string;
+  profileTitle: string;
+  yearsExperience: number;
+  employmentTypes: string[];
+  titleKeywords: string[];
+}
+
+export interface RunSummary {
+  id: string;
+  status: string;
+  trigger: string;
+  resultsRetrieved: number;
+  newJobs: number;
+  apifyUsd: number | null;
+  note?: string | null;
+  startedAt: string;
+  finishedAt?: string | null;
+}
+
+export interface JobRadarOverview {
+  config: JobRadarConfig;
+  stats: {
+    discoveredToday: number;
+    moroccoJobs: number;
+    franceJobs: number;
+    saudiJobs: number;
+    ukJobs: number;
+    highScore: number;
+    newJobs: number;
+    statusCounts: Record<string, number>;
+  };
+  quota: {
+    morocco: { used: number; limit: number };
+    france: { used: number; limit: number };
+    saudi: { used: number; limit: number };
+    uk: { used: number; limit: number };
+  };
+  spend: {
+    monthUsd: number;
+    budgetLimitUsd: number;
+    budgetUsd: number;
+    byCountry: { country: string; results: number; newJobs: number; usd: number }[];
+  };
+  runs: RunSummary[];
+  todayKey: string;
 }

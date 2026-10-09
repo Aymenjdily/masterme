@@ -16,10 +16,10 @@ import {
   Globe,
   BookOpen,
   Clock,
-  Briefcase,
   FolderKanban,
   Newspaper,
   Settings,
+  Radar,
   SquareTerminal,
   StickyNote,
   Wallet,
@@ -40,7 +40,7 @@ export const navData: NavItem[] = [
 
   // Career & Business Section
   { label: "Career & Business", isSection: true },
-  { title: "Jobs", icon: Briefcase, href: "/jobs" },
+  { title: "Job Radar", icon: Radar, href: "/jobradar" },
   { title: "Projects", icon: FolderKanban, href: "/projects" },
   { title: "Logs", icon: SquareTerminal, href: "/logs" },
   { title: "Tech News", icon: Newspaper, href: "/news" },

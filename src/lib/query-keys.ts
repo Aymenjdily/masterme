@@ -3,6 +3,8 @@ export const queryKeys = {
   socialApps: ["social-apps"] as const,
   timeline: (date: string) => ["timeline", date] as const,
   jobOffers: (status?: string) => ["job-offers", status ?? "all"] as const,
+  jobRadarOverview: ["job-radar-overview"] as const,
+  jobRadarConfig: ["job-radar-config"] as const,
   jobApplications: ["job-applications"] as const,
   recruiterContacts: ["recruiter-contacts"] as const,
   userSkills: ["user-skills"] as const,

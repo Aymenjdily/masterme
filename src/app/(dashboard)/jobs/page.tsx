@@ -1,8 +1,8 @@
-import type { Metadata } from "next";
-import { JobsView } from "@/components/jobs/JobsView";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = { title: "Jobs" };
-
+// Applications/recruiters tracking stayed behind JobRadar; the old Jobs page
+// deep-links (header, paste-anything, day planner, dashboard widgets) now land
+// on the radar, which is the only career surface in the nav.
 export default function JobsPage() {
-  return <JobsView />;
+  redirect("/jobradar");
 }
