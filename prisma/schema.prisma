@@ -471,6 +471,12 @@ model JobSearch {
   /// Cap for this single search, applied at the actor level too
   limitPerSource Int     @default(25)
   enabled        Boolean @default(true)
+  /// Apify run started but not yet consumed (its invocation died mid-wait);
+  /// the next pulse polls and harvests it instead of paying again
+  pendingRunId   String?
+  lastRunAt      DateTime?
+  /// Day (config timezone) this search last executed — the "done today" flag
+  lastRunDay     DateTime? @db.Date
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   config         JobRadarConfig @relation(fields: [configId], references: [id], onDelete: Cascade)

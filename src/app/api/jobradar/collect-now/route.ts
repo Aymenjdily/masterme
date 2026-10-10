@@ -1,34 +1,39 @@
 import { headers } from "next/headers";
-import { after } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { collectForUser } from "@/lib/jobradar/collector";
+import { collectPendingSearches } from "@/lib/jobradar/collector";
 
 // Browser-facing manual trigger for "Get current jobs" (user session, NOT the
-// CRON_SECRET bearer). The actual collection runs after this response via
-// `after()` — a run can take many minutes, so nothing blocks the UI. The
-// collector's own overlap guard prevents double runs with the 18:00 cron.
+// CRON_SECRET bearer). Each POST is one short pulse — the client keeps
+// calling until `remainingSearches` reaches 0, so no single request risks the
+// serverless time limit, and a closed tab loses nothing (pending Apify runs
+// are resumed by the next pulse, cron or manual).
+export const maxDuration = 240;
+
 export async function POST() {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Return immediately; reject before starting if a run would be skipped
-  const hasPlatformConfigured = Boolean(process.env.APIFY_TOKEN);
-  if (!hasPlatformConfigured) {
+  const configured = Boolean(process.env.APIFY_TOKEN);
+  if (!configured) {
     return Response.json({ error: "APIFY_TOKEN missing on the server" }, { status: 400 });
   }
 
-  after(async () => {
-    try {
-      await collectForUser(session.user.id, { trigger: "manual" });
-    } catch (err) {
-      console.error("[jobradar] manual collect failed:", err);
-    }
+  const summary = await collectPendingSearches(session.user.id, {
+    trigger: "manual",
+    timeBudgetMs: 200_000,
   });
 
-  return Response.json({ started: true }, { status: 202 });
+  return Response.json({
+    processed: summary.processed,
+    remainingSearches: summary.remainingSearches,
+    resultsRetrieved: summary.resultsRetrieved,
+    newJobs: summary.newJobs,
+    status: summary.status,
+    note: summary.note ?? null,
+  });
 }
 
 export async function GET() {

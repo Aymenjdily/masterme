@@ -58,14 +58,14 @@ async function getJson<T>(url: string): Promise<T> {
   return res.json();
 }
 
-async function send(url: string, method: string, body?: unknown) {
+async function send<T = unknown>(url: string, method: string, body?: unknown): Promise<T> {
   const res = await fetch(url, {
     method,
     headers: body ? { "Content-Type": "application/json" } : undefined,
     body: body ? JSON.stringify(body) : undefined,
   });
   if (!res.ok) throw new Error(`${method} ${url} failed`);
-  return res.json();
+  return res.json() as Promise<T>;
 }
 
 export function JobRadarView() {
@@ -98,21 +98,39 @@ export function JobRadarView() {
   });
 
   const collectMutation = useMutation({
-    mutationFn: () => send("/api/jobradar/collect-now", "POST"),
-    onSuccess: () => {
-      showToast({
-        title: "Collection started",
-        detail: "Fresh listings will appear here in a few minutes.",
-      });
-      // Overview picks up the "running" run row; feed refreshes later on visits
-      setTimeout(() => {
+    mutationFn: async () => {
+      // Pulse loop: every POST processes searches that fit in ~3 min of
+      // server time; it keeps going until the queue for today is empty.
+      type Pulse = {
+        processed: number;
+        remainingSearches: number;
+        resultsRetrieved: number;
+        newJobs: number;
+        status: string;
+        note: string | null;
+      };
+      let last: Pulse | null = null;
+      for (let i = 0; i < 60; i += 1) {
+        last = await send<Pulse>("/api/jobradar/collect-now", "POST");
+        queryClient.invalidateQueries({ queryKey: queryKeys.jobOffers("radar") });
         queryClient.invalidateQueries({ queryKey: queryKeys.jobRadarOverview });
-      }, 2_000);
+        if (last.status === "skipped") {
+          throw new Error(last.note ?? "collection skipped");
+        }
+        if (last.remainingSearches === 0) break;
+      }
+      return last;
     },
-    onError: () => {
+    onSuccess: (data) => {
       showToast({
-        title: "Could not start collection",
-        detail: "A run may already be in progress.",
+        title: "Jobs refreshed",
+        detail: `${data?.newJobs ?? 0} new listings found${data?.newJobs ? " (fresh scoring included)" : ""}`,
+      });
+    },
+    onError: (err) => {
+      showToast({
+        title: "Collection stopped",
+        detail: err instanceof Error ? err.message : "Try again in a minute.",
       });
     },
   });
@@ -149,7 +167,7 @@ export function JobRadarView() {
             className="cursor-pointer"
           >
             <RadarIcon />
-            {collectMutation.isPending ? "Starting…" : "Get current jobs"}
+            {collectMutation.isPending ? "Fetching…" : "Get current jobs"}
           </Button>
         </div>
       </div>
